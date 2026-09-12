@@ -1,0 +1,97 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info/
+
+# Virtual environments and local orchestration
+.venv/
+.omo/
+.modal.toml
+
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+opencode.jsonc
+.opencode/
+.superpowers/
+AGENTS.md
+docs/superpowers/
+
+# Jupyter local state and startup scripts
+.jupyter/
+.jupyter_ystore.db
+run-jup.sh
+run-jup.ps1
+.ipynb_checkpoints/
+scripts/notebook/.ipynb_checkpoints/
+scripts/**/__pycache__/
+
+# Local-only source material
+/archive/
+/main.py
+/agricultural-extension-rag-student-starter-notebo.ipynb
+
+# W&B local and offline runs
+wandb/
+scripts/outputs/wandb/
+
+# Saved model weights and checkpoints
+/models/
+checkpoints/
+*.pt
+*.pth
+*.ckpt
+
+# Public output policy: keep curated summaries visible, ignore raw/runtime data.
+scripts/outputs/*.npy
+scripts/outputs/*ranking*.csv
+scripts/outputs/*per_query*.csv
+scripts/outputs/*per-query*.csv
+scripts/outputs/exp02_*
+scripts/outputs/.cache/
+scripts/outputs/cache/
+scripts/outputs/tmp/
+scripts/outputs/**/.cache/
+scripts/outputs/**/cache/
+scripts/outputs/**/tmp/
+# Initial public exclusion policy
+scripts/outputs/submission.csv
+data/dataset-metadata.json
+!scripts/outputs/sparse_experiments.csv
+!scripts/outputs/dense_experiments.csv
+!scripts/outputs/reranker_experiments.csv
+!scripts/outputs/rerank_candidate_gate.csv
+
+# Experiment 2 is held out of initial public staging until two tests pass.
+scripts/notebook/02_retrieval_experiments.*
+
+# Downloaded/large generic data formats outside supplied public CSV/JSON data
+data/local/**
+!data/local/.gitkeep
+!data/local/README.md
+data/cloud/**
+!data/cloud/.gitkeep
+!data/cloud/README.md
+*.tar
+*.tar.gz
+*.zip
+*.nii
+*.nii.gz
+*.dcm
+*.h5
+*.parquet
+
+# Tooling caches
+.cache/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+
+# OS junk
+.DS_Store
+Thumbs.db

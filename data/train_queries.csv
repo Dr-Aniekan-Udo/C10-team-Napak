@@ -1,0 +1,309 @@
+query_id,query,positive_docs
+1,How do I cope with flooding and excess rain on my farm?,8 9 10 7 6
+2,How can I adapt my farming to flooding and excess rain?,8 9 10 7 6
+3,How does flooding and excess rain affect my crops?,6 8 9 10 7
+4,What is the risk of flooding and excess rain to farming?,6 8 9 10 7
+5,How do I manage bacterial leaf blight in rice?,40 36 38
+6,What should I do about an outbreak of bacterial leaf blight in rice?,40 36 38
+7,How can I prevent bacterial leaf blight in rice?,41 37 39 34
+8,How do I stop bacterial leaf blight before it hits my rice?,41 37 39 34
+9,How does bacterial leaf blight spread in rice?,34 37 39 41
+10,What makes bacterial leaf blight get worse on rice?,34 37 39 41
+11,What are the symptoms of bacterial leaf blight in rice?,35
+12,My rice shows spots and damage — could it be bacterial leaf blight?,35
+13,How do I manage bean anthracnose in common bean?,45 47
+14,What should I do about an outbreak of bean anthracnose in common bean?,45 47
+15,How can I prevent bean anthracnose in common bean?,48 46 43
+16,How do I stop bean anthracnose before it hits my common bean?,48 46 43
+17,How does bean anthracnose spread in common bean?,43 46 48
+18,What makes bean anthracnose get worse on common bean?,43 46 48
+19,What are the symptoms of bean anthracnose in common bean?,44
+20,My common bean shows spots and damage — could it be bean anthracnose?,44
+21,How do I manage blast in rice?,59
+22,What should I do about an outbreak of blast in rice?,59
+23,How do I manage groundnut rosette disease in groundnut?,105 107 103
+24,What should I do about an outbreak of groundnut rosette disease in groundnut?,105 107 103
+25,How can I prevent groundnut rosette disease in groundnut?,104 106 108 101
+26,How do I stop groundnut rosette disease before it hits my groundnut?,104 106 108 101
+27,How does groundnut rosette disease spread in groundnut?,101 104 106 108
+28,What makes groundnut rosette disease get worse on groundnut?,101 104 106 108
+29,What are the symptoms of groundnut rosette disease in groundnut?,102
+30,My groundnut shows spots and damage — could it be groundnut rosette disease?,102
+31,How do I manage rice blast in rice?,137 139 135
+32,What should I do about an outbreak of rice blast in rice?,137 139 135
+33,How can I prevent rice blast in rice?,136 138 140 133
+34,How do I stop rice blast before it hits my rice?,136 138 140 133
+35,How does rice blast spread in rice?,133 136 138 140
+36,What makes rice blast get worse on rice?,133 136 138 140
+37,What are the symptoms of rice blast in rice?,134
+38,My rice shows spots and damage — could it be rice blast?,134
+39,How do I manage rice blast and bacterial leaf blight in rice?,151
+40,What should I do about an outbreak of rice blast and bacterial leaf blight in rice?,151
+41,How do I manage tomato bacterial wilt in tomato?,161 163 165
+42,What should I do about an outbreak of tomato bacterial wilt in tomato?,161 163 165
+43,How can I prevent tomato bacterial wilt in tomato?,162 164 166 159
+44,How do I stop tomato bacterial wilt before it hits my tomato?,162 164 166 159
+45,How does tomato bacterial wilt spread in tomato?,159 162 164 166
+46,What makes tomato bacterial wilt get worse on tomato?,159 162 164 166
+47,What are the symptoms of tomato bacterial wilt in tomato?,160
+48,My tomato shows spots and damage — could it be tomato bacterial wilt?,160
+49,How do I manage yam anthracnose in yam?,185 187
+50,What should I do about an outbreak of yam anthracnose in yam?,185 187
+51,How can I prevent yam anthracnose in yam?,186 188 183
+52,How do I stop yam anthracnose before it hits my yam?,186 188 183
+53,How does yam anthracnose spread in yam?,183 186 188
+54,What makes yam anthracnose get worse on yam?,183 186 188
+55,What are the symptoms of yam anthracnose in yam?,184
+56,My yam shows spots and damage — could it be yam anthracnose?,184
+57,How do I manage rosette disease in groundnut?,191
+58,What should I do about an outbreak of rosette disease in groundnut?,191
+59,What fertiliser should I use for cowpea?,204 205 206 207 193 194 195 196
+60,What is the best fertiliser programme for cowpea?,204 205 206 207 193 194 195 196
+61,What fertiliser should I use for maize?,212 213 214 215 216 217 218 219 220 221 222 223 193 194 195 196
+62,What is the best fertiliser programme for maize?,212 213 214 215 216 217 218 219 220 221 222 223 193 194 195 196
+63,What fertiliser should I use for pearl millet?,224 225 226 193 194 195 196
+64,What is the best fertiliser programme for pearl millet?,224 225 226 193 194 195 196
+65,What fertiliser should I use for rice?,232 233 230 231 193 194 195 196
+66,What is the best fertiliser programme for rice?,232 233 230 231 193 194 195 196
+67,What fertiliser should I use for sorghum?,234 235 236 193 194 195 196
+68,What is the best fertiliser programme for sorghum?,234 235 236 193 194 195 196
+69,What fertiliser should I use for yam?,241 242 243 193 194 195 196
+70,What is the best fertiliser programme for yam?,241 242 243 193 194 195 196
+71,What causes boron deficiency in cassava?,246 256 257 258 255
+72,Why does my cassava get boron deficiency?,246 256 257 258 255
+73,How do I fix boron deficiency in cassava?,249 251 253 256 257 258 255
+74,What fertiliser corrects boron deficiency in cassava?,249 251 253 256 257 258 255
+75,How can I tell boron deficiency in cassava apart from other problems?,247 248 256 257 258 255
+76,Is it boron deficiency or another deficiency in my cassava?,247 248 256 257 258 255
+77,How do I know if my cassava has boron deficiency?,248 247 256 257 258 255
+78,What does boron deficiency look like in cassava?,248 247 256 257 258 255
+79,How can I prevent boron deficiency in cassava?,250 252 254 256 257 258 255
+80,How do I stop boron deficiency before it hits my cassava?,250 252 254 256 257 258 255
+81,What causes iron deficiency in rice?,285 280 281 278 279
+82,Why does my rice get iron deficiency?,285 280 281 278 279
+83,How do I fix iron deficiency in rice?,288 290 292 280 281 278 279
+84,What fertiliser corrects iron deficiency in rice?,288 290 292 280 281 278 279
+85,How can I tell iron deficiency in rice apart from other problems?,286 287 280 281 278 279
+86,Is it iron deficiency or another deficiency in my rice?,286 287 280 281 278 279
+87,How do I know if my rice has iron deficiency?,287 286 280 281 278 279
+88,What does iron deficiency look like in rice?,287 286 280 281 278 279
+89,How can I prevent iron deficiency in rice?,289 291 293 280 281 278 279
+90,How do I stop iron deficiency before it hits my rice?,289 291 293 280 281 278 279
+91,What causes nitrogen deficiency in cassava?,333 344 345 342 343
+92,Why does my cassava get nitrogen deficiency?,333 344 345 342 343
+93,How do I fix nitrogen deficiency in cassava?,336 338 340 344 345 342 343
+94,What fertiliser corrects nitrogen deficiency in cassava?,336 338 340 344 345 342 343
+95,How can I tell nitrogen deficiency in cassava apart from other problems?,334 335 344 345 342 343
+96,Is it nitrogen deficiency or another deficiency in my cassava?,334 335 344 345 342 343
+97,How do I know if my cassava has nitrogen deficiency?,335 334 344 345 342 343
+98,What does nitrogen deficiency look like in cassava?,335 334 344 345 342 343
+99,How can I prevent nitrogen deficiency in cassava?,337 339 341 344 345 342 343
+100,How do I stop nitrogen deficiency before it hits my cassava?,337 339 341 344 345 342 343
+101,What causes nitrogen deficiency in pearl millet?,351 336 333 334 335
+102,Why does my pearl millet get nitrogen deficiency?,351 336 333 334 335
+103,How do I fix nitrogen deficiency in pearl millet?,354 356 336 333 334 335
+104,What fertiliser corrects nitrogen deficiency in pearl millet?,354 356 336 333 334 335
+105,How can I tell nitrogen deficiency in pearl millet apart from other problems?,352 353 336 333 334 335
+106,Is it nitrogen deficiency or another deficiency in my pearl millet?,352 353 336 333 334 335
+107,How do I know if my pearl millet has nitrogen deficiency?,353 352 336 333 334 335
+108,What does nitrogen deficiency look like in pearl millet?,353 352 336 333 334 335
+109,How can I prevent nitrogen deficiency in pearl millet?,355 357 336 333 334 335
+110,How do I stop nitrogen deficiency before it hits my pearl millet?,355 357 336 333 334 335
+111,What causes nitrogen deficiency in rice?,365 336 333 334 335
+112,Why does my rice get nitrogen deficiency?,365 336 333 334 335
+113,How do I fix nitrogen deficiency in rice?,368 370 372 336 333 334 335
+114,What fertiliser corrects nitrogen deficiency in rice?,368 370 372 336 333 334 335
+115,How can I tell nitrogen deficiency in rice apart from other problems?,366 367 336 333 334 335
+116,Is it nitrogen deficiency or another deficiency in my rice?,366 367 336 333 334 335
+117,How do I know if my rice has nitrogen deficiency?,367 366 336 333 334 335
+118,What does nitrogen deficiency look like in rice?,367 366 336 333 334 335
+119,How can I prevent nitrogen deficiency in rice?,369 371 373 336 333 334 335
+120,How do I stop nitrogen deficiency before it hits my rice?,369 371 373 336 333 334 335
+121,What causes nitrogen deficiency in tomato?,381 336 333 334 335
+122,Why does my tomato get nitrogen deficiency?,381 336 333 334 335
+123,How do I fix nitrogen deficiency in tomato?,384 386 388 336 333 334 335
+124,What fertiliser corrects nitrogen deficiency in tomato?,384 386 388 336 333 334 335
+125,How can I tell nitrogen deficiency in tomato apart from other problems?,382 383 336 333 334 335
+126,Is it nitrogen deficiency or another deficiency in my tomato?,382 383 336 333 334 335
+127,How do I know if my tomato has nitrogen deficiency?,383 382 336 333 334 335
+128,What does nitrogen deficiency look like in tomato?,383 382 336 333 334 335
+129,How can I prevent nitrogen deficiency in tomato?,385 387 389 336 333 334 335
+130,How do I stop nitrogen deficiency before it hits my tomato?,385 387 389 336 333 334 335
+131,What causes phosphorus deficiency in maize?,422 400 397 398 399
+132,Why does my maize get phosphorus deficiency?,422 400 397 398 399
+133,How do I fix phosphorus deficiency in maize?,425 427 429 400 397 398 399
+134,What fertiliser corrects phosphorus deficiency in maize?,425 427 429 400 397 398 399
+135,How can I tell phosphorus deficiency in maize apart from other problems?,423 424 400 397 398 399
+136,Is it phosphorus deficiency or another deficiency in my maize?,423 424 400 397 398 399
+137,How do I know if my maize has phosphorus deficiency?,424 423 400 397 398 399
+138,What does phosphorus deficiency look like in maize?,424 423 400 397 398 399
+139,How can I prevent phosphorus deficiency in maize?,426 428 430 400 397 398 399
+140,How do I stop phosphorus deficiency before it hits my maize?,426 428 430 400 397 398 399
+141,What causes phosphorus deficiency in rice?,431 400 397 398 399
+142,Why does my rice get phosphorus deficiency?,431 400 397 398 399
+143,How do I fix phosphorus deficiency in rice?,434 436 438 400 397 398 399
+144,What fertiliser corrects phosphorus deficiency in rice?,434 436 438 400 397 398 399
+145,How can I tell phosphorus deficiency in rice apart from other problems?,432 433 400 397 398 399
+146,Is it phosphorus deficiency or another deficiency in my rice?,432 433 400 397 398 399
+147,How do I know if my rice has phosphorus deficiency?,433 432 400 397 398 399
+148,What does phosphorus deficiency look like in rice?,433 432 400 397 398 399
+149,How can I prevent phosphorus deficiency in rice?,435 437 439 400 397 398 399
+150,How do I stop phosphorus deficiency before it hits my rice?,435 437 439 400 397 398 399
+151,What causes phosphorus deficiency in sorghum?,440 400 397 398 399
+152,Why does my sorghum get phosphorus deficiency?,440 400 397 398 399
+153,How do I fix phosphorus deficiency in sorghum?,443 445 400 397 398 399
+154,What fertiliser corrects phosphorus deficiency in sorghum?,443 445 400 397 398 399
+155,How can I tell phosphorus deficiency in sorghum apart from other problems?,441 442 400 397 398 399
+156,Is it phosphorus deficiency or another deficiency in my sorghum?,441 442 400 397 398 399
+157,How do I know if my sorghum has phosphorus deficiency?,442 441 400 397 398 399
+158,What does phosphorus deficiency look like in sorghum?,442 441 400 397 398 399
+159,How can I prevent phosphorus deficiency in sorghum?,444 446 400 397 398 399
+160,How do I stop phosphorus deficiency before it hits my sorghum?,444 446 400 397 398 399
+161,What causes phosphorus deficiency in tomato?,447 400 397 398 399
+162,Why does my tomato get phosphorus deficiency?,447 400 397 398 399
+163,How do I fix phosphorus deficiency in tomato?,450 452 454 400 397 398 399
+164,What fertiliser corrects phosphorus deficiency in tomato?,450 452 454 400 397 398 399
+165,How can I tell phosphorus deficiency in tomato apart from other problems?,448 449 400 397 398 399
+166,Is it phosphorus deficiency or another deficiency in my tomato?,448 449 400 397 398 399
+167,How do I know if my tomato has phosphorus deficiency?,449 448 400 397 398 399
+168,What does phosphorus deficiency look like in tomato?,449 448 400 397 398 399
+169,How can I prevent phosphorus deficiency in tomato?,451 453 455 400 397 398 399
+170,How do I stop phosphorus deficiency before it hits my tomato?,451 453 455 400 397 398 399
+171,What causes potassium deficiency in cassava?,456 465 466 467 468
+172,Why does my cassava get potassium deficiency?,456 465 466 467 468
+173,How do I fix potassium deficiency in cassava?,459 461 463 465 466 467 468
+174,What fertiliser corrects potassium deficiency in cassava?,459 461 463 465 466 467 468
+175,How can I tell potassium deficiency in cassava apart from other problems?,457 458 465 466 467 468
+176,Is it potassium deficiency or another deficiency in my cassava?,457 458 465 466 467 468
+177,How do I know if my cassava has potassium deficiency?,458 457 465 466 467 468
+178,What does potassium deficiency look like in cassava?,458 457 465 466 467 468
+179,How can I prevent potassium deficiency in cassava?,464 460 462 465 466 467 468
+180,How do I stop potassium deficiency before it hits my cassava?,464 460 462 465 466 467 468
+181,What causes potassium deficiency in cocoa?,465 456 457 458 459
+182,Why does my cocoa get potassium deficiency?,465 456 457 458 459
+183,How do I fix potassium deficiency in cocoa?,468 456 457 458 459
+184,What fertiliser corrects potassium deficiency in cocoa?,468 456 457 458 459
+185,How can I tell potassium deficiency in cocoa apart from other problems?,466 467 456 457 458 459
+186,Is it potassium deficiency or another deficiency in my cocoa?,466 467 456 457 458 459
+187,How do I know if my cocoa has potassium deficiency?,467 466 456 457 458 459
+188,What does potassium deficiency look like in cocoa?,467 466 456 457 458 459
+189,How can I prevent potassium deficiency in cocoa?,469 456 457 458 459
+190,How do I stop potassium deficiency before it hits my cocoa?,469 456 457 458 459
+191,What causes potassium deficiency in plantain?,479 456 457 458 459
+192,Why does my plantain get potassium deficiency?,479 456 457 458 459
+193,How do I fix potassium deficiency in plantain?,482 484 456 457 458 459
+194,What fertiliser corrects potassium deficiency in plantain?,482 484 456 457 458 459
+195,How can I tell potassium deficiency in plantain apart from other problems?,480 481 456 457 458 459
+196,Is it potassium deficiency or another deficiency in my plantain?,480 481 456 457 458 459
+197,How do I know if my plantain has potassium deficiency?,481 480 456 457 458 459
+198,What does potassium deficiency look like in plantain?,481 480 456 457 458 459
+199,How can I prevent potassium deficiency in plantain?,483 485 456 457 458 459
+200,How do I stop potassium deficiency before it hits my plantain?,483 485 456 457 458 459
+201,What causes sulphur deficiency in common bean?,502 512 509 510 511
+202,Why does my common bean get sulphur deficiency?,502 512 509 510 511
+203,How do I fix sulphur deficiency in common bean?,505 507 512 509 510 511
+204,What fertiliser corrects sulphur deficiency in common bean?,505 507 512 509 510 511
+205,How can I tell sulphur deficiency in common bean apart from other problems?,503 504 512 509 510 511
+206,Is it sulphur deficiency or another deficiency in my common bean?,503 504 512 509 510 511
+207,How do I know if my common bean has sulphur deficiency?,504 503 512 509 510 511
+208,What does sulphur deficiency look like in common bean?,504 503 512 509 510 511
+209,How can I prevent sulphur deficiency in common bean?,506 508 512 509 510 511
+210,How do I stop sulphur deficiency before it hits my common bean?,506 508 512 509 510 511
+211,What causes sulphur deficiency in maize?,527 504 505 502 503
+212,Why does my maize get sulphur deficiency?,527 504 505 502 503
+213,How do I fix sulphur deficiency in maize?,530 532 534 504 505 502 503
+214,What fertiliser corrects sulphur deficiency in maize?,530 532 534 504 505 502 503
+215,How can I tell sulphur deficiency in maize apart from other problems?,528 529 504 505 502 503
+216,Is it sulphur deficiency or another deficiency in my maize?,528 529 504 505 502 503
+217,How do I know if my maize has sulphur deficiency?,529 528 504 505 502 503
+218,What does sulphur deficiency look like in maize?,529 528 504 505 502 503
+219,How can I prevent sulphur deficiency in maize?,531 533 535 504 505 502 503
+220,How do I stop sulphur deficiency before it hits my maize?,531 533 535 504 505 502 503
+221,What causes zinc deficiency in maize?,543 536 537 538 539
+222,Why does my maize get zinc deficiency?,543 536 537 538 539
+223,How do I fix zinc deficiency in maize?,546 548 550 536 537 538 539
+224,What fertiliser corrects zinc deficiency in maize?,546 548 550 536 537 538 539
+225,How can I tell zinc deficiency in maize apart from other problems?,544 545 536 537 538 539
+226,Is it zinc deficiency or another deficiency in my maize?,544 545 536 537 538 539
+227,How do I know if my maize has zinc deficiency?,545 544 536 537 538 539
+228,What does zinc deficiency look like in maize?,545 544 536 537 538 539
+229,How can I prevent zinc deficiency in maize?,547 549 551 536 537 538 539
+230,How do I stop zinc deficiency before it hits my maize?,547 549 551 536 537 538 539
+231,What causes zinc deficiency in tomato?,561 536 537 538 539
+232,Why does my tomato get zinc deficiency?,561 536 537 538 539
+233,How do I fix zinc deficiency in tomato?,568 564 566 536 537 538 539
+234,What fertiliser corrects zinc deficiency in tomato?,568 564 566 536 537 538 539
+235,How can I tell zinc deficiency in tomato apart from other problems?,562 563 536 537 538 539
+236,Is it zinc deficiency or another deficiency in my tomato?,562 563 536 537 538 539
+237,How do I know if my tomato has zinc deficiency?,563 562 536 537 538 539
+238,What does zinc deficiency look like in tomato?,563 562 536 537 538 539
+239,How can I prevent zinc deficiency in tomato?,569 565 567 536 537 538 539
+240,How do I stop zinc deficiency before it hits my tomato?,569 565 567 536 537 538 539
+241,How do I control bean aphid on common bean?,573 575 576 574
+242,What is the best way to deal with bean aphid on common bean?,573 575 576 574
+243,What damage does bean aphid do to common bean?,571
+244,How much yield can bean aphid cost me on common bean?,571
+245,How do I know if my common bean has bean aphid?,572
+246,What does bean aphid look like in common bean?,572
+247,How can I prevent bean aphid in common bean?,576 574 573 575
+248,How do I stop bean aphid before it hits my common bean?,576 574 573 575
+249,How do I control legume pod borer on cowpea?,608 604 606 609 605 607
+250,What is the best way to deal with legume pod borer on cowpea?,608 604 606 609 605 607
+251,What damage does legume pod borer do to cowpea?,602
+252,How much yield can legume pod borer cost me on cowpea?,602
+253,How do I know if my cowpea has legume pod borer?,603
+254,What does legume pod borer look like in cowpea?,603
+255,How can I prevent legume pod borer in cowpea?,609 605 607 608 604 606
+256,How do I stop legume pod borer before it hits my cowpea?,609 605 607 608 604 606
+257,How do I control maize stem borer on maize?,616 612 614 613 615 617
+258,What is the best way to deal with maize stem borer on maize?,616 612 614 613 615 617
+259,What damage does maize stem borer do to maize?,610
+260,How much yield can maize stem borer cost me on maize?,610
+261,How do I know if my maize has maize stem borer?,611
+262,What does maize stem borer look like in maize?,611
+263,How can I prevent maize stem borer in maize?,617 613 615 612 614 616
+264,How do I stop maize stem borer before it hits my maize?,617 613 615 612 614 616
+265,How do I control rice stem borer on rice?,624 620 622 621 623 625
+266,What is the best way to deal with rice stem borer on rice?,624 620 622 621 623 625
+267,What damage does rice stem borer do to rice?,618
+268,How much yield can rice stem borer cost me on rice?,618
+269,How do I know if my rice has rice stem borer?,619
+270,What does rice stem borer look like in rice?,619
+271,How can I prevent rice stem borer in rice?,625 621 623 620 622 624
+272,How do I stop rice stem borer before it hits my rice?,625 621 623 620 622 624
+273,How do I control sorghum shoot fly on sorghum?,628 630 629 631
+274,What is the best way to deal with sorghum shoot fly on sorghum?,628 630 629 631
+275,What damage does sorghum shoot fly do to sorghum?,626
+276,How much yield can sorghum shoot fly cost me on sorghum?,626
+277,How do I know if my sorghum has sorghum shoot fly?,627
+278,What does sorghum shoot fly look like in sorghum?,627
+279,How can I prevent sorghum shoot fly in sorghum?,629 631 628 630
+280,How do I stop sorghum shoot fly before it hits my sorghum?,629 631 628 630
+281,What damage does weevil severity do to plantain?,643
+282,How much yield can weevil severity cost me on plantain?,643
+283,How do I control cowpea insect pests on cowpea?,645
+284,What is the best way to deal with cowpea insect pests on cowpea?,645
+285,How do I control invasive insect pests and bacterial wilt on tomato?,654
+286,What is the best way to deal with invasive insect pests and bacterial wilt on tomato?,654
+287,How do I check for low soil organic matter in my soil?,656 657
+288,How can I tell if my field has low soil organic matter?,656 657
+289,How do I manage low soil organic matter on my farm?,658 659 660
+290,What can I do about low soil organic matter in my field?,658 659 660
+291,What problem does low soil organic matter cause on the farm?,657 656
+292,Why is low soil organic matter bad for my crops?,657 656
+293,How do I check for soil acidity in my soil?,661 662
+294,How can I tell if my field has soil acidity?,661 662
+295,How do I manage soil acidity on my farm?,664 665 663
+296,What can I do about soil acidity in my field?,664 665 663
+297,What problem does soil acidity cause on the farm?,662 661
+298,Why is soil acidity bad for my crops?,662 661
+299,How do I check for soil erosion in my soil?,671 672
+300,How can I tell if my field has soil erosion?,671 672
+301,How do I manage soil erosion on my farm?,673 674 675
+302,What can I do about soil erosion in my field?,673 674 675
+303,What problem does soil erosion cause on the farm?,672 671
+304,Why is soil erosion bad for my crops?,672 671
+305,How do I manage nutrient deficiency in maize?,686
+306,What should I do about an outbreak of nutrient deficiency in maize?,686
+307,How do I manage soil acidification in maize?,687
+308,What should I do about an outbreak of soil acidification in maize?,687

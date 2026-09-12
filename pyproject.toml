@@ -1,0 +1,50 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "agro-rag"
+version = "0.1.0"
+description = "Research notebook for agricultural-extension document retrieval"
+readme = "README.md"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+    "ipykernel>=7.2.0",
+    "jupytext",
+    "kagglehub",
+    "numpy",
+    "pandas",
+    "scikit-learn",
+]
+
+[project.optional-dependencies]
+dev = [
+    "jupyterlab==4.4.1",
+    "jupyter-collaboration==4.0.2",
+    "jupyter-mcp-tools",
+    "jupyterlab_cell_status_extension",
+    "pre-commit",
+    "pycrdt",
+    "pytest",
+]
+dense = [
+    "sentence-transformers",
+    "torch",
+]
+rerank = [
+    "lightgbm",
+]
+cross_encoder = [
+    "sentence-transformers",
+    "torch",
+]
+
+[tool.uv]
+package = false
+
+[tool.jupytext]
+formats = "ipynb,py:percent"
+outdated_text_notebook_margin = 130
+
+[tool.hatch.build.targets.wheel]
+packages = []

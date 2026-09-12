@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Copy this file to run-jup.sh, fill in the real token, and run it
+# yourself in a separate terminal — the agent connects to this server
+# via the jupyter MCP, it does not start it.
+#
+#   cp run-jup.sh.example run-jup.sh
+#   # edit run-jup.sh and replace <TOKEN>
+#   ./run-jup.sh
+
+source .venv/Scripts/activate
+jupyter lab --port=8888 \
+  --IdentityProvider.token=<TOKEN> \
+  --ip=127.0.0.1 \
+  --ServerApp.allow_origin="*" \
+  --ServerApp.disable_check_xsrf=True \
+  --LabApp.collaborative=False
