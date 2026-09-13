@@ -34,7 +34,7 @@ class SparseCandidateGenerator:
 
     def __init__(self, document_processor: DocumentProcessor) -> None:
         self.document_processor = document_processor
-        self._document_ids = sorted(document_processor._documents)
+        self._document_ids = document_processor.document_ids
         self._vectorizer: TfidfVectorizer | None = None
         self._document_matrix: Any | None = None
         if self._document_ids:
@@ -118,7 +118,7 @@ class CrossEncoderRanker:
         unknown = [
             document_id
             for document_id in candidate_ids
-            if document_id not in self.document_processor._documents
+            if document_id not in self.document_processor.document_ids
         ]
         if unknown:
             raise RuntimeError(f"Candidate generator returned unknown document ID: {unknown[0]}")

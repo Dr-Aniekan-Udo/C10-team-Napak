@@ -6,9 +6,25 @@ import json
 import os
 import tempfile
 import uuid
+from dataclasses import dataclass
 from pathlib import Path
 
 from .models import ChatMessage, RetrievedDocument, Session, SessionTurn
+
+
+@dataclass(frozen=True)
+class SessionSummary:
+    """Public listing data for one persisted field-notes session."""
+
+    session_id: str
+    question: str
+    modified_at: float
+
+    @property
+    def first_question(self) -> str:
+        """Return first user question under an explicit semantic name."""
+
+        return self.question
 
 
 class SessionStore:
@@ -54,6 +70,38 @@ class SessionStore:
 
     def clear(self, session_id: str) -> None:
         self._path(session_id).unlink(missing_ok=True)
+
+    def list_summaries(self) -> tuple[SessionSummary, ...]:
+        """List valid saved sessions without exposing storage details.
+
+        Corrupt JSON, invalid session filenames, and files removed during the
+        scan are ignored. Results are newest-first, matching the field-notes UI.
+        """
+
+        try:
+            paths = [path for path in self.root.glob("*.json") if path.is_file()]
+            paths.sort(key=lambda path: path.stat().st_mtime, reverse=True)
+        except (OSError, TypeError, ValueError):
+            return ()
+
+        summaries: list[SessionSummary] = []
+        for path in paths:
+            try:
+                session = self.load(path.stem)
+                modified_at = path.stat().st_mtime
+            except (OSError, OverflowError, TypeError, ValueError):
+                continue
+            question = ""
+            if session.turns:
+                question = session.turns[0].user.content
+            summaries.append(
+                SessionSummary(
+                    session_id=session.session_id,
+                    question=question,
+                    modified_at=modified_at,
+                )
+            )
+        return tuple(summaries)
 
     def _path(self, session_id: str) -> Path:
         if not isinstance(session_id, str):

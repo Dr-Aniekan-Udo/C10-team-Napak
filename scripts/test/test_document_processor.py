@@ -46,6 +46,42 @@ def test_from_csv_loads_required_document_fields_and_lookup(tmp_path: Path) -> N
         processor.get("missing")
 
 
+def test_public_metadata_and_count_are_safe_ui_views() -> None:
+    processor = DocumentProcessor(
+        [
+            RetrievedDocument(
+                "d1",
+                "First title",
+                "First document text.",
+                0.0,
+                1,
+                "FAO",
+                "https://example.test/1",
+                "maize",
+                "Kenya",
+                "synthetic",
+                "CC0",
+            ),
+            RetrievedDocument("d2", "Second title", "Second document text.", 0.0, 2),
+        ]
+    )
+
+    metadata = processor.metadata
+
+    assert processor.document_count == 2
+    assert metadata["d1"] == {
+        "title": "First title",
+        "source": "FAO",
+        "source_url": "https://example.test/1",
+        "crop": "maize",
+        "country": "Kenya",
+        "origin": "synthetic",
+        "license": "CC0",
+    }
+    assert metadata["d2"] == {"title": "Second title"}
+    assert processor.document_metadata == metadata
+
+
 @pytest.mark.parametrize(
     "rows, message",
     [

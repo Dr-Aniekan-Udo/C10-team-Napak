@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterator, Sequence
+from collections.abc import Iterator, Mapping, Sequence
 
 from .agent import AgentBackend
 from .document_processor import DocumentProcessor
@@ -32,6 +32,18 @@ class RagPipeline:
         self.agent = agent
         self.sessions = sessions
         self.top_k = top_k
+
+    @property
+    def corpus_count(self) -> int:
+        """Expose corpus size without making UI code inspect processor state."""
+
+        return self.processor.document_count
+
+    @property
+    def document_metadata(self) -> Mapping[str, Mapping[str, str]]:
+        """Expose display metadata through the pipeline composition boundary."""
+
+        return self.processor.document_metadata
 
     def respond(self, session_id: str, message: str) -> RagResponse:
         fragments = []

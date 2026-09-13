@@ -8,7 +8,7 @@ from types import SimpleNamespace
 import gradio as gr
 
 from scripts.utilities.models import RetrievedDocument
-from scripts.utilities.sessions import SessionStore
+from scripts.utilities.sessions import SessionStore, SessionSummary
 
 
 @dataclass
@@ -16,6 +16,49 @@ class FakePipeline:
     """Factory-only double: app construction must not call pipeline behavior."""
 
     stream_calls: int = 0
+
+
+class PublicSessionStore:
+    def __init__(self) -> None:
+        self.list_calls = 0
+
+    @property
+    def root(self) -> Path:
+        raise AssertionError("app must not inspect session storage paths")
+
+    def list_summaries(self) -> tuple[SessionSummary, ...]:
+        self.list_calls += 1
+        return (
+            SessionSummary(
+                session_id="00000000-0000-4000-8000-000000000001",
+                question="How should I scout maize?",
+                modified_at=1_700_000_000.0,
+            ),
+        )
+
+
+class PrivateProcessorTrap:
+    @property
+    def _documents(self):
+        raise AssertionError("app must use public corpus APIs")
+
+    @property
+    def _metadata(self):
+        raise AssertionError("app must use public corpus APIs")
+
+
+class PublicApiPipeline:
+    def __init__(self) -> None:
+        self.sessions = PublicSessionStore()
+        self.processor = PrivateProcessorTrap()
+        self.corpus_count = 12
+        self.document_metadata = {
+            "doc-1": {
+                "title": "Maize note",
+                "source": "Extension service",
+                "crop": "maize",
+            }
+        }
 
 
 def _config_text(app: gr.Blocks) -> str:
@@ -131,6 +174,20 @@ def test_factory_registers_stable_qa_element_ids() -> None:
         "evidence-cards",
     ):
         assert element_id in element_ids
+
+
+def test_factory_uses_public_session_and_document_apis() -> None:
+    import scripts.app as app_module
+
+    pipeline = PublicApiPipeline()
+
+    app = app_module.create_app(pipeline)  # type: ignore[arg-type]
+
+    assert pipeline.sessions.list_calls == 1
+    assert app_module._corpus_count(pipeline) == "12"
+    assert app_module._metadata_for_pipeline(pipeline) == pipeline.document_metadata
+    config_text = _config_text(app)
+    assert "How should I scout maize?" in config_text
 
 
 def test_source_cards_escape_metadata_and_do_not_expose_ranker_score() -> None:

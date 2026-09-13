@@ -34,7 +34,7 @@ from scripts.utilities.config import AppConfig
 from scripts.utilities.document_processor import DocumentProcessor
 from scripts.utilities.models import Session
 from scripts.utilities.ranker import build_ranker
-from scripts.utilities.sessions import SessionStore
+from scripts.utilities.sessions import SessionStore, SessionSummary
 from scripts.utilities.stream import RagPipeline
 
 
@@ -1265,38 +1265,29 @@ def _session_control_updates(
 
 
 def _list_saved_sessions(pipeline: object) -> tuple[_SavedSession, ...]:
-    store = getattr(pipeline, "sessions", None)
-    if store is None:
-        return ()
-    root_value = getattr(store, "root", None)
-    if root_value is None or not hasattr(store, "load"):
+    store = _session_store(pipeline)
+    if store is None or not callable(getattr(store, "list_summaries", None)):
         return ()
     try:
-        root = Path(root_value)
-        paths = [path for path in root.glob("*.json") if path.is_file()]
-        paths.sort(key=lambda path: path.stat().st_mtime, reverse=True)
-    except (OSError, TypeError, ValueError):
+        summaries = store.list_summaries()
+    except (OSError, OverflowError, TypeError, ValueError):
         return ()
 
     records: list[_SavedSession] = []
-    for path in paths:
+    for summary in summaries:
+        if not isinstance(summary, SessionSummary):
+            continue
         try:
-            session = store.load(path.stem)
-            if not isinstance(session, Session):
-                continue
-            modified_at = path.stat().st_mtime
-            date_label = datetime.fromtimestamp(modified_at).strftime("%d %b %Y")
+            date_label = datetime.fromtimestamp(summary.modified_at).strftime("%d %b %Y")
         except (OSError, OverflowError, TypeError, ValueError):
             continue
-        question = "Untitled field note"
-        if session.turns:
-            question = _compact_text(session.turns[0].user.content, 72)
+        question = _compact_text(summary.question, 72) or "Untitled field note"
         records.append(
             _SavedSession(
-                session_id=path.stem,
+                session_id=summary.session_id,
                 date_label=date_label,
                 question=question,
-                modified_at=modified_at,
+                modified_at=summary.modified_at,
             )
         )
     return tuple(records)
@@ -1358,28 +1349,15 @@ def _normalise_sources(value: object) -> tuple[object, ...]:
 
 def _metadata_for_pipeline(pipeline: object) -> dict[str, Mapping[str, object]]:
     metadata: dict[str, Mapping[str, object]] = {}
-    processor = getattr(pipeline, "processor", None)
     candidates = (
-        getattr(pipeline, "metadata", None),
         getattr(pipeline, "document_metadata", None),
-        getattr(processor, "metadata", None),
-        getattr(processor, "_metadata", None),
+        getattr(pipeline, "metadata", None),
     )
     for candidate in candidates:
         if isinstance(candidate, Mapping):
             for document_id, values in candidate.items():
                 if isinstance(values, Mapping):
                     metadata[str(document_id)] = values
-    documents = getattr(processor, "_documents", None)
-    if isinstance(documents, Mapping):
-        for document_id, document in documents.items():
-            values = {
-                field: getattr(document, field)
-                for field in ("crop", "country", "origin", "license")
-                if getattr(document, field, None) is not None
-            }
-            if values:
-                metadata.setdefault(str(document_id), values)
     return metadata
 
 
@@ -1429,10 +1407,6 @@ def _compact_text(value: str, limit: int) -> str:
 
 
 def _corpus_count(pipeline: object) -> str:
-    processor = getattr(pipeline, "processor", None)
-    documents = getattr(processor, "_documents", None)
-    if isinstance(documents, Mapping):
-        return str(len(documents))
     count = getattr(pipeline, "corpus_count", None)
     if isinstance(count, int) and count >= 0:
         return str(count)

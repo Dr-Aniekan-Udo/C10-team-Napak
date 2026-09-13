@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from pathlib import Path
+from types import MappingProxyType
 
 import pandas as pd
 
@@ -19,6 +20,50 @@ class DocumentProcessor:
 
     def __init__(self, documents: Sequence[RetrievedDocument]) -> None:
         self._documents = {document.document_id: document for document in documents}
+        self._metadata = MappingProxyType(
+            {
+                document_id: MappingProxyType(
+                    {
+                        field: value
+                        for field in (
+                            "title",
+                            "source",
+                            "source_url",
+                            "crop",
+                            "country",
+                            "origin",
+                            "license",
+                        )
+                        if (value := getattr(document, field)) is not None
+                    }
+                )
+                for document_id, document in self._documents.items()
+            }
+        )
+
+    @property
+    def document_count(self) -> int:
+        """Return number of documents available to retrieval and UI layers."""
+
+        return len(self._documents)
+
+    @property
+    def document_ids(self) -> tuple[str, ...]:
+        """Return deterministic document identifiers for retrieval helpers."""
+
+        return tuple(sorted(self._documents))
+
+    @property
+    def metadata(self) -> Mapping[str, Mapping[str, str]]:
+        """Return immutable display metadata keyed by document identifier."""
+
+        return self._metadata
+
+    @property
+    def document_metadata(self) -> Mapping[str, Mapping[str, str]]:
+        """Alias making metadata's document-facing purpose explicit."""
+
+        return self.metadata
 
     @classmethod
     def from_csv(cls, path: Path) -> "DocumentProcessor":

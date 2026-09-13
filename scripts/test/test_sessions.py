@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from scripts.utilities.models import ChatMessage, Session, SessionTurn
-from scripts.utilities.sessions import SessionStore
+from scripts.utilities.sessions import SessionStore, SessionSummary
 
 
 def make_session(session_id: str = "00000000-0000-4000-8000-000000000001") -> Session:
@@ -33,6 +33,27 @@ def test_create_save_load_and_clear_session(tmp_path: Path) -> None:
     store.clear(session.session_id)
     with pytest.raises(FileNotFoundError):
         store.load(session.session_id)
+
+
+def test_list_summaries_hides_file_format_and_orders_by_modified_time(tmp_path: Path) -> None:
+    store = SessionStore(tmp_path)
+    older = make_session("00000000-0000-4000-8000-000000000001")
+    newer = make_session("00000000-0000-4000-8000-000000000002")
+    store.save(older)
+    store.save(newer)
+    older_path = tmp_path / f"{older.session_id}.json"
+    newer_path = tmp_path / f"{newer.session_id}.json"
+    os.utime(older_path, (100.0, 100.0))
+    os.utime(newer_path, (200.0, 200.0))
+    (tmp_path / "not-a-session.json").write_text("{}", encoding="utf-8")
+    (tmp_path / "broken.json").write_text("{not json", encoding="utf-8")
+
+    summaries = store.list_summaries()
+
+    assert all(isinstance(summary, SessionSummary) for summary in summaries)
+    assert [summary.session_id for summary in summaries] == [newer.session_id, older.session_id]
+    assert [summary.question for summary in summaries] == ["Question", "Question"]
+    assert [summary.modified_at for summary in summaries] == [200.0, 100.0]
 
 
 @pytest.mark.parametrize("session_id", ["../escape", "nested/id", "not-a-uuid", ""])
