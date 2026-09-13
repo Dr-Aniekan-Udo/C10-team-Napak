@@ -2,6 +2,7 @@ from pathlib import Path
 
 import pytest
 
+import scripts.utilities.config as config_module
 from scripts.utilities.config import AppConfig
 
 
@@ -75,4 +76,35 @@ def test_explicit_environment_mapping_wins_over_process_environment(
 
     config = AppConfig.from_env(_environment(AGRO_RAG_MODEL="explicit-model"))
 
+    assert config.model == "explicit-model"
+
+
+def test_dotenv_file_loads_with_process_and_mapping_precedence(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    package_root = tmp_path / "package" / "utilities"
+    package_root.mkdir(parents=True)
+    (tmp_path / ".env").write_text(
+        "AGRO_RAG_API_BASE_URL=https://dotenv.example/v1\n"
+        "AGRO_RAG_MODEL=dotenv-model\n"
+        "AGRO_RAG_DATA_DIR=~/dotenv-data\n"
+        "AGRO_RAG_RANK_MODEL=dotenv-rank-model\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(config_module, "__file__", str(package_root / "config.py"))
+    for name in (
+        "AGRO_RAG_API_BASE_URL",
+        "AGRO_RAG_MODEL",
+        "AGRO_RAG_DATA_DIR",
+        "AGRO_RAG_RANK_MODEL",
+    ):
+        monkeypatch.delenv(name, raising=False)
+    monkeypatch.setenv("AGRO_RAG_MODEL", "process-model")
+
+    config = AppConfig.from_env({"AGRO_RAG_MODEL": "explicit-model"})
+
+    assert config.api_base_url == "https://dotenv.example/v1"
+    assert config.data_dir == Path("~/dotenv-data").expanduser()
+    assert config.rank_model == "dotenv-rank-model"
     assert config.model == "explicit-model"
