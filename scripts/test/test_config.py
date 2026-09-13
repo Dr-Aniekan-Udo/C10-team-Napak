@@ -85,7 +85,7 @@ def test_from_env_rejects_invalid_ranker_and_top_k() -> None:
 
 @pytest.mark.parametrize(
     "url",
-    ["localhost:11434/v1", "ftp://api.example/v1", "https://"],
+    ["localhost:11434/v1", "ftp://api.example/v1", "https://", "http://[invalid/v1"],
 )
 def test_from_env_rejects_invalid_api_base_url_syntax(url: str) -> None:
     with pytest.raises(ValueError, match="AGRO_RAG_API_BASE_URL"):

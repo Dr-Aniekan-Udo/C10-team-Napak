@@ -46,12 +46,12 @@ def validate_api_base_url(value: object, name: str = "api_base_url") -> str:
     if not isinstance(value, str):
         raise ValueError(f"{name} must be a valid http/https URL")
     candidate = value.strip()
-    parsed = urlparse(candidate)
     try:
+        parsed = urlparse(candidate)
         has_valid_host = bool(parsed.hostname)
         parsed.port
     except ValueError:
-        has_valid_host = False
+        raise ValueError(f"{name} must be a valid http/https URL") from None
     if (
         parsed.scheme.casefold() not in {"http", "https"}
         or not has_valid_host

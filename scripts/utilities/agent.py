@@ -60,7 +60,10 @@ class OpenAICompatibleAgent:
                 if content:
                     yield content
         except Exception:
-            raise RuntimeError("agent provider request failed") from None
+            sanitized_error = RuntimeError("agent provider request failed")
+        else:
+            return
+        raise sanitized_error
 
 
 def _make_client(config: AppConfig) -> OpenAI:

@@ -198,7 +198,9 @@ def test_provider_error_is_surfaced_without_secret_exposure() -> None:
 
     assert secret not in str(exc_info.value)
     assert exc_info.value.__cause__ is None
-    assert secret not in "".join(traceback.format_exception(exc_info.value))
+    assert exc_info.value.__context__ is None
+    assert secret not in repr(exc_info.value)
+    assert secret not in "".join(traceback.format_exception(exc_info.value, chain=True))
 
 
 def test_provider_error_during_iteration_is_sanitized_without_chaining() -> None:
@@ -215,10 +217,15 @@ def test_provider_error_during_iteration_is_sanitized_without_chaining() -> None
         list(agent.stream([ChatMessage("user", "question")]))
 
     assert exc_info.value.__cause__ is None
-    assert secret not in "".join(traceback.format_exception(exc_info.value))
+    assert exc_info.value.__context__ is None
+    assert secret not in repr(exc_info.value)
+    assert secret not in "".join(traceback.format_exception(exc_info.value, chain=True))
 
 
-@pytest.mark.parametrize("url", ["localhost:11434/v1", "ftp://api.example/v1", "https://"])
+@pytest.mark.parametrize(
+    "url",
+    ["localhost:11434/v1", "ftp://api.example/v1", "https://", "http://[invalid/v1"],
+)
 def test_agent_rejects_invalid_api_base_url_syntax(url: str) -> None:
     with pytest.raises(ValueError, match="api_base_url"):
         OpenAICompatibleAgent(_config(api_base_url=url), _FakeClient(_Completions([])))
