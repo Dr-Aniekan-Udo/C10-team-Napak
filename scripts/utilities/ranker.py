@@ -164,6 +164,10 @@ class CrossEncoderRanker:
                     rank=rank,
                     source=document.source,
                     source_url=document.source_url,
+                    crop=document.crop,
+                    country=document.country,
+                    origin=document.origin,
+                    license=document.license,
                 )
             )
         return results

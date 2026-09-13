@@ -15,6 +15,7 @@ class DocumentProcessor:
 
     MAX_CONTEXT_CHARS = 6000
     REQUIRED_COLUMNS = frozenset({"document_id", "title", "text", "source", "source_url"})
+    OPTIONAL_METADATA_COLUMNS = frozenset({"crop", "country", "origin", "license"})
 
     def __init__(self, documents: Sequence[RetrievedDocument]) -> None:
         self._documents = {document.document_id: document for document in documents}
@@ -50,6 +51,11 @@ class DocumentProcessor:
                     rank=len(documents) + 1,
                     source=str(values["source"]),
                     source_url=str(values["source_url"]),
+                    **{
+                        column: _optional_text(row[column])
+                        for column in cls.OPTIONAL_METADATA_COLUMNS
+                        if column in frame.columns
+                    },
                 )
             )
         return cls(documents)
@@ -81,3 +87,9 @@ class DocumentProcessor:
         source = document.source or "Unknown"
         url = document.source_url or "Unavailable"
         return f"[{index}] {document.document_id}\nTitle: {document.title}\nSource: {source}\nURL: {url}"
+
+
+def _optional_text(value: object) -> str | None:
+    if pd.isna(value):
+        return None
+    return str(value)

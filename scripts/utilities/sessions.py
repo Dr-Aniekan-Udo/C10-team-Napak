@@ -92,6 +92,10 @@ class SessionStore:
                             "rank": source.rank,
                             "source": source.source,
                             "source_url": source.source_url,
+                            "crop": source.crop,
+                            "country": source.country,
+                            "origin": source.origin,
+                            "license": source.license,
                         }
                         for source in turn.sources
                     ],

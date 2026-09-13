@@ -77,6 +77,34 @@ Dense and reranking profiles are opt-in and may download pretrained models or
 take substantial CPU/GPU time. See `docs/research/retrieval-methods.md` for
 model, license, and profile details.
 
+## Local Field Notes App
+
+The thin Gradio app keeps retrieval evidence beside each streamed answer. It
+reads the same `documents.csv` corpus, stores sessions under the ignored
+`.local/sessions/` directory, and never treats ranker scores as confidence.
+
+Set local configuration from the committed template, then launch app directly
+from repository root:
+
+```text
+Copy-Item .env.example .env
+# Edit .env: set AGRO_RAG_API_BASE_URL, AGRO_RAG_MODEL, and AGRO_RAG_DATA_DIR.
+# Keep AGRO_RAG_API_KEY=null for a local OpenAI-compatible server.
+uv run --extra app python scripts/app.py
+```
+
+For a hosted OpenAI-compatible provider, set `AGRO_RAG_API_BASE_URL` and
+`AGRO_RAG_API_KEY` in `.env`; do not commit that file. The default cross-encoder
+ranker loads weights only when the first question is submitted. Install the
+matching optional retrieval extra before using that ranker:
+
+```text
+uv sync --extra app --extra cross_encoder
+```
+
+Importing `scripts.app` or calling `create_app` with an injected pipeline does
+not launch Gradio, call the provider, or load model weights.
+
 For paired notebook maintenance, edit the `.py` file and run:
 
 ```text

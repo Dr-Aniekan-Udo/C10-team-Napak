@@ -41,6 +41,10 @@ class RetrievedDocument:
     rank: int
     source: str | None = None
     source_url: str | None = None
+    crop: str | None = None
+    country: str | None = None
+    origin: str | None = None
+    license: str | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.document_id, str):
@@ -71,6 +75,12 @@ class RetrievedDocument:
                 raise ValueError("source_url must be a string or None")
             source_url = self.source_url.strip()
             object.__setattr__(self, "source_url", source_url or None)
+        for field in ("crop", "country", "origin", "license"):
+            value = getattr(self, field)
+            if value is not None:
+                if not isinstance(value, str):
+                    raise ValueError(f"{field} must be a string or None")
+                object.__setattr__(self, field, value.strip() or None)
         if isinstance(self.score, bool) or not isinstance(self.score, (int, float)):
             raise ValueError("score must be a number")
         if not math.isfinite(self.score):
