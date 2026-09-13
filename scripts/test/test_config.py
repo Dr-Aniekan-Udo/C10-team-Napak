@@ -121,7 +121,7 @@ def test_dotenv_file_loads_with_process_and_mapping_precedence(
         "AGRO_RAG_API_BASE_URL=https://dotenv.example/v1\n"
         "AGRO_RAG_MODEL=dotenv-model\n"
         "AGRO_RAG_DATA_DIR=~/dotenv-data\n"
-        "AGRO_RAG_RANK_MODEL=dotenv-rank-model\n",
+        "export AGRO_RAG_RANK_MODEL=dotenv-rank-model\n",
         encoding="utf-8",
     )
     monkeypatch.setattr(config_module, "__file__", str(package_root / "config.py"))

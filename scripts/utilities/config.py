@@ -7,6 +7,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Mapping
 
+from dotenv import dotenv_values
+
 
 _DEFAULTS = {
     "AGRO_RAG_SESSION_DIR": ".local/sessions",
@@ -21,18 +23,11 @@ _NULLABLE_VALUES = {"", "null", "none"}
 def _load_dotenv(path: Path) -> dict[str, str]:
     if not path.is_file():
         return {}
-    values: dict[str, str] = {}
-    for raw_line in path.read_text(encoding="utf-8").splitlines():
-        line = raw_line.strip()
-        if not line or line.startswith("#") or "=" not in line:
-            continue
-        name, value = line.split("=", 1)
-        name = name.strip()
-        value = value.strip()
-        if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
-            value = value[1:-1]
-        values[name] = value
-    return values
+    return {
+        name: value
+        for name, value in dotenv_values(path).items()
+        if value is not None
+    }
 
 
 def _required(values: Mapping[str, str], name: str) -> str:
