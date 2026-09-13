@@ -6,6 +6,7 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Mapping
+from urllib.parse import urlparse
 
 from dotenv import dotenv_values
 
@@ -38,6 +39,26 @@ def _required(values: Mapping[str, str], name: str) -> str:
     if not value:
         raise ValueError(f"{name} is required and must be non-empty")
     return value
+
+
+def validate_api_base_url(value: object, name: str = "api_base_url") -> str:
+    """Require an absolute HTTP(S) URL for provider configuration."""
+    if not isinstance(value, str):
+        raise ValueError(f"{name} must be a valid http/https URL")
+    candidate = value.strip()
+    parsed = urlparse(candidate)
+    try:
+        has_valid_host = bool(parsed.hostname)
+        parsed.port
+    except ValueError:
+        has_valid_host = False
+    if (
+        parsed.scheme.casefold() not in {"http", "https"}
+        or not has_valid_host
+        or any(character.isspace() for character in candidate)
+    ):
+        raise ValueError(f"{name} must be a valid http/https URL")
+    return candidate
 
 
 @dataclass(frozen=True)
@@ -86,7 +107,10 @@ class AppConfig:
             raise ValueError("AGRO_RAG_TOP_K must be a positive integer")
 
         return cls(
-            api_base_url=_required(values, "AGRO_RAG_API_BASE_URL"),
+            api_base_url=validate_api_base_url(
+                _required(values, "AGRO_RAG_API_BASE_URL"),
+                "AGRO_RAG_API_BASE_URL",
+            ),
             api_key=api_key,
             model=_required(values, "AGRO_RAG_MODEL"),
             data_dir=Path(_required(values, "AGRO_RAG_DATA_DIR")).expanduser(),

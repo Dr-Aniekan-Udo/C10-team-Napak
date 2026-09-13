@@ -7,7 +7,7 @@ from typing import Any, Protocol, runtime_checkable
 
 from openai import OpenAI
 
-from scripts.utilities.config import AppConfig
+from scripts.utilities.config import AppConfig, validate_api_base_url
 from scripts.utilities.models import ChatMessage
 
 
@@ -33,8 +33,7 @@ class OpenAICompatibleAgent:
     """Small adapter around OpenAI-compatible chat-completion endpoints."""
 
     def __init__(self, config: AppConfig, client: OpenAI | None = None) -> None:
-        if not isinstance(config.api_base_url, str) or not config.api_base_url.strip():
-            raise ValueError("api_base_url must be non-empty")
+        validate_api_base_url(config.api_base_url)
         if not isinstance(config.model, str) or not config.model.strip():
             raise ValueError("model must be non-empty")
         self._config = config
@@ -43,11 +42,13 @@ class OpenAICompatibleAgent:
     def stream(self, messages: Sequence[ChatMessage]) -> Iterator[str]:
         request_messages = [
             {"role": "system", "content": _GROUNDED_SYSTEM_PROMPT},
-            *(
-                {"role": message.role, "content": message.content}
-                for message in messages
-            ),
         ]
+        if any(message.role == "system" for message in messages):
+            raise ValueError("caller-supplied system messages are not allowed")
+        request_messages.extend(
+            {"role": message.role, "content": message.content}
+            for message in messages
+        )
         try:
             chunks = self._client.chat.completions.create(
                 model=self._config.model,
@@ -58,8 +59,8 @@ class OpenAICompatibleAgent:
                 content = _chunk_content(chunk)
                 if content:
                     yield content
-        except Exception as exc:
-            raise RuntimeError("agent provider request failed") from exc
+        except Exception:
+            raise RuntimeError("agent provider request failed") from None
 
 
 def _make_client(config: AppConfig) -> OpenAI:
