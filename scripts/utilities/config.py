@@ -14,7 +14,8 @@ _DEFAULTS = {
     "AGRO_RAG_SESSION_DIR": ".local/sessions",
     "AGRO_RAG_RANKER": "cross_encoder",
     "AGRO_RAG_RANK_MODEL": "cross-encoder/ms-marco-MiniLM-L-6-v2",
-    # Experiment 1 dense candidate model; loaded only by an injected dense generator.
+    # Candidate-model provenance; default app factory uses sparse candidates.
+    # An injected dense/hybrid CandidateGenerator owns model loading.
     "AGRO_RAG_CANDIDATE_MODEL": "sentence-transformers/all-MiniLM-L6-v2",
     "AGRO_RAG_TOP_K": "5",
 }

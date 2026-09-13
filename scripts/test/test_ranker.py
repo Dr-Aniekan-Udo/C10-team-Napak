@@ -8,7 +8,12 @@ import pytest
 from scripts.utilities.config import AppConfig
 from scripts.utilities.document_processor import DocumentProcessor
 from scripts.utilities.models import RetrievedDocument
-from scripts.utilities.ranker import CrossEncoderRanker, Ranker, build_ranker
+from scripts.utilities.ranker import (
+    CrossEncoderRanker,
+    Ranker,
+    SparseCandidateGenerator,
+    build_ranker,
+)
 
 
 def processor() -> DocumentProcessor:
@@ -63,6 +68,7 @@ def test_factory_uses_configured_cross_encoder_model_without_loading_weights() -
     assert isinstance(ranker, CrossEncoderRanker)
     assert ranker.rank_model == "configured-ranker-model"
     assert ranker.candidate_model == "configured-candidate-model"
+    assert isinstance(ranker._candidate_generator, SparseCandidateGenerator)
     assert ranker.model_loaded is False
 
 
@@ -257,3 +263,49 @@ def test_rank_wraps_model_prediction_errors() -> None:
 
     with pytest.raises(RuntimeError, match="prediction failed"):
         ranker.rank("query")
+
+
+@pytest.mark.parametrize(
+    ("candidate_ids", "message"),
+    [
+        (["d1", "d1"], "duplicate document IDs"),
+        (["missing"], "unknown document ID"),
+        ([1], "invalid document IDs"),
+    ],
+)
+def test_rank_rejects_invalid_candidate_ids(
+    candidate_ids: list[object], message: str
+) -> None:
+    ranker = CrossEncoderRanker(
+        processor(),
+        "model",
+        candidate_generator=FakeCandidateGenerator(candidate_ids),  # type: ignore[arg-type]
+    )
+
+    with pytest.raises(RuntimeError, match=message):
+        ranker.rank("query")
+
+    assert ranker.model_loaded is False
+
+
+def test_empty_candidate_output_returns_without_loading_rank_model(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[str] = []
+
+    def load(model_id: str) -> object:
+        calls.append(model_id)
+        return object()
+
+    monkeypatch.setitem(
+        sys.modules,
+        "sentence_transformers",
+        types.SimpleNamespace(CrossEncoder=load),
+    )
+    ranker = CrossEncoderRanker(
+        processor(), "local-cache-model", candidate_generator=FakeCandidateGenerator([])
+    )
+
+    assert ranker.rank("query") == []
+    assert calls == []
+    assert ranker.model_loaded is False

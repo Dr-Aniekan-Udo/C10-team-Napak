@@ -22,6 +22,8 @@ class Ranker(Protocol):
 
 
 class CandidateGenerator(Protocol):
+    """Generate candidate IDs; dense or hybrid implementations are injectable."""
+
     def generate(self, query: str, candidate_k: int) -> Sequence[str]:
         """Return query-aware document IDs in candidate rank order."""
         ...
@@ -62,6 +64,11 @@ class CrossEncoderRanker:
     Pair construction and ordering mirror Experiment 1's
     ``rerank_with_cross_encoder`` implementation. Model weights are loaded only
     when the first non-empty candidate set is ranked.
+
+    The default candidate path is deterministic sparse char-TF-IDF so local and
+    offline app construction never downloads a candidate model. ``candidate_model``
+    records the configured dense/hybrid model for an injected
+    :class:`CandidateGenerator`; it is not loaded or used by the default path.
     """
 
     def __init__(
@@ -79,6 +86,8 @@ class CrossEncoderRanker:
         self.candidate_k = _positive_integer(candidate_k, "candidate_k")
         if not isinstance(candidate_model, str) or not candidate_model.strip():
             raise ValueError("candidate_model must be a non-empty string")
+        # Keep candidate model provenance separate from the app-safe default
+        # generator. Dense or hybrid generation must be injected explicitly.
         self.candidate_model = candidate_model.strip()
         self._candidate_generator = (
             candidate_generator
@@ -178,7 +187,11 @@ class CrossEncoderRanker:
 
 
 def build_ranker(config: AppConfig, processor: DocumentProcessor) -> Ranker:
-    """Build configured ranker without loading model weights."""
+    """Build ranker without weights; default candidates stay sparse and offline-safe.
+
+    ``config.candidate_model`` is provenance/configuration for a separately
+    injected dense or hybrid generator, not a request to load model weights here.
+    """
 
     if config.ranker == "cross_encoder":
         return CrossEncoderRanker(

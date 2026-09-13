@@ -50,10 +50,13 @@ actual `candidate_k=100`. Candidate model ID is
 `sentence-transformers/all-MiniLM-L6-v2`; no model revision or hash is claimed.
 Application configuration keeps this candidate model separate from
 `AGRO_RAG_RANK_MODEL` through `AGRO_RAG_CANDIDATE_MODEL`, whose documented
-default is `sentence-transformers/all-MiniLM-L6-v2`. The app-safe default
-candidate generator uses validated sparse char-TF-IDF title-weight-2 behavior;
-dense or sparse+dense generators can be injected without loading weights at
-ranker construction.
+default is `sentence-transformers/all-MiniLM-L6-v2`. This value records dense
+candidate provenance/configuration for an injected dense or sparse+dense
+`CandidateGenerator`; it is not silently loaded or used by the default factory.
+The app-safe default candidate generator intentionally uses validated sparse
+char-TF-IDF title-weight-2 behavior, so local/offline ranker construction has
+no candidate-model download. Dense or sparse+dense generators must be injected
+explicitly and own their model loading.
 Candidate recall is printed and recorded before reranking.
 
 The explicit gate requires both candidate recall@50 and candidate recall@100 to
