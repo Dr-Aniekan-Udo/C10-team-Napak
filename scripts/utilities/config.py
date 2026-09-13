@@ -14,6 +14,8 @@ _DEFAULTS = {
     "AGRO_RAG_SESSION_DIR": ".local/sessions",
     "AGRO_RAG_RANKER": "cross_encoder",
     "AGRO_RAG_RANK_MODEL": "cross-encoder/ms-marco-MiniLM-L-6-v2",
+    # Experiment 1 dense candidate model; loaded only by an injected dense generator.
+    "AGRO_RAG_CANDIDATE_MODEL": "sentence-transformers/all-MiniLM-L6-v2",
     "AGRO_RAG_TOP_K": "5",
 }
 _SUPPORTED_RANKERS = {"cross_encoder", "lightgbm", "none"}
@@ -47,6 +49,7 @@ class AppConfig:
     ranker: str
     rank_model: str
     top_k: int
+    candidate_model: str = _DEFAULTS["AGRO_RAG_CANDIDATE_MODEL"]
 
     @classmethod
     def from_env(cls, environ: Mapping[str, str] | None = None) -> "AppConfig":
@@ -63,6 +66,7 @@ class AppConfig:
             "AGRO_RAG_SESSION_DIR",
             "AGRO_RAG_RANKER",
             "AGRO_RAG_RANK_MODEL",
+            "AGRO_RAG_CANDIDATE_MODEL",
             "AGRO_RAG_TOP_K",
         ):
             if name in values and not isinstance(values[name], str):
@@ -89,4 +93,5 @@ class AppConfig:
             ranker=ranker,
             rank_model=_required(values, "AGRO_RAG_RANK_MODEL"),
             top_k=top_k,
+            candidate_model=_required(values, "AGRO_RAG_CANDIDATE_MODEL"),
         )

@@ -48,6 +48,12 @@ once for all 308 labeled training queries, the fixed 56-query validation
 holdout, and 200 test queries from `char_tfidf_title_2` + dense RRF at the
 actual `candidate_k=100`. Candidate model ID is
 `sentence-transformers/all-MiniLM-L6-v2`; no model revision or hash is claimed.
+Application configuration keeps this candidate model separate from
+`AGRO_RAG_RANK_MODEL` through `AGRO_RAG_CANDIDATE_MODEL`, whose documented
+default is `sentence-transformers/all-MiniLM-L6-v2`. The app-safe default
+candidate generator uses validated sparse char-TF-IDF title-weight-2 behavior;
+dense or sparse+dense generators can be injected without loading weights at
+ranker construction.
 Candidate recall is printed and recorded before reranking.
 
 The explicit gate requires both candidate recall@50 and candidate recall@100 to

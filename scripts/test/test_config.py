@@ -15,6 +15,7 @@ def _environment(**overrides: str) -> dict[str, str]:
         "AGRO_RAG_SESSION_DIR": ".local/sessions",
         "AGRO_RAG_RANKER": "cross_encoder",
         "AGRO_RAG_RANK_MODEL": "rank-model",
+        "AGRO_RAG_CANDIDATE_MODEL": "candidate-model",
         "AGRO_RAG_TOP_K": "5",
     }
     values.update(overrides)
@@ -29,6 +30,7 @@ def test_from_env_normalizes_nullable_key_and_paths() -> None:
     assert config.data_dir == Path("data")
     assert config.session_dir == Path(".local/sessions")
     assert config.top_k == 5
+    assert config.candidate_model == "candidate-model"
 
 
 def test_from_env_accepts_cloud_key_and_preserves_rank_model() -> None:
@@ -43,6 +45,18 @@ def test_from_env_accepts_cloud_key_and_preserves_rank_model() -> None:
     assert config.api_key == "secret"
     assert config.model == "generation-model"
     assert config.rank_model == "independent-rank-model"
+
+
+def test_from_env_keeps_candidate_model_separate_from_rank_model() -> None:
+    config = AppConfig.from_env(
+        _environment(
+            AGRO_RAG_RANK_MODEL="cross-encoder-model",
+            AGRO_RAG_CANDIDATE_MODEL="dense-candidate-model",
+        )
+    )
+
+    assert config.rank_model == "cross-encoder-model"
+    assert config.candidate_model == "dense-candidate-model"
 
 
 @pytest.mark.parametrize("value", ["", "   ", "null", "NULL", "none", "None"])
@@ -79,6 +93,7 @@ def test_from_env_rejects_invalid_ranker_and_top_k() -> None:
         "AGRO_RAG_SESSION_DIR",
         "AGRO_RAG_RANKER",
         "AGRO_RAG_RANK_MODEL",
+        "AGRO_RAG_CANDIDATE_MODEL",
         "AGRO_RAG_TOP_K",
     ],
 )
