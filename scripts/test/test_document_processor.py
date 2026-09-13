@@ -4,6 +4,7 @@ import pandas as pd
 import pytest
 
 from scripts.utilities.document_processor import DocumentProcessor
+from scripts.utilities.models import RetrievedDocument
 
 
 def write_csv(path: Path, rows: list[dict[str, object]]) -> None:
@@ -74,7 +75,26 @@ def test_context_is_bounded_deterministic_and_citation_complete(tmp_path: Path) 
 
     assert len(context) <= DocumentProcessor.MAX_CONTEXT_CHARS
     assert context == processor.context([second, first])
+    assert "d2" in context
     assert context.index("Second title") < context.index("First title")
-    assert "Source: IITA" in context
+    assert "d1" in context
+    assert "Title: First title" in context
+    assert "Source: FAO" in context
     assert "URL: https://example.test/1" in context
+    assert "Source: IITA" in context
     assert "[2]" in context
+
+
+def test_context_rejects_oversized_citation_headers_without_truncating_metadata() -> None:
+    document = RetrievedDocument(
+        document_id="doc-with-long-title",
+        title="T" * 5990,
+        text="body",
+        score=0.0,
+        rank=1,
+        source="FAO",
+        source_url="https://example.test/source",
+    )
+
+    with pytest.raises(ValueError, match="citation headers exceed context budget"):
+        DocumentProcessor((document,)).context((document,))

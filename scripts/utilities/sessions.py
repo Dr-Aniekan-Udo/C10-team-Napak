@@ -64,7 +64,15 @@ class SessionStore:
             raise ValueError("session_id must be a UUID") from exc
         if str(parsed) != session_id or parsed.version != 4:
             raise ValueError("session_id must be a canonical UUID4")
-        return self.root / f"{session_id}.json"
+        root = self.root.resolve()
+        path = root / f"{session_id}.json"
+        if path.is_symlink():
+            raise ValueError("session path must not be a symlink")
+        try:
+            path.resolve(strict=False).relative_to(root)
+        except ValueError as exc:
+            raise ValueError("session path must remain within session root") from exc
+        return path
 
     @staticmethod
     def _to_payload(session: Session) -> dict[str, object]:

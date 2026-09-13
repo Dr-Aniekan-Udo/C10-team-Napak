@@ -83,3 +83,22 @@ def test_save_replaces_atomically_and_leaves_no_temp_file(tmp_path: Path, monkey
     assert calls[0][1] == tmp_path / f"{session.session_id}.json"
     assert store.load(session.session_id) == session
     assert list(tmp_path.glob("*.tmp")) == []
+
+
+@pytest.mark.parametrize("operation", ["load", "save", "clear"])
+def test_rejects_uuid_named_symlink_escaping_root(tmp_path: Path, operation: str) -> None:
+    store = SessionStore(tmp_path)
+    session = make_session()
+    outside = tmp_path.parent / "outside-session.json"
+    outside.write_text(json.dumps(store._to_payload(session)), encoding="utf-8")
+    path = tmp_path / f"{session.session_id}.json"
+    try:
+        path.symlink_to(outside)
+    except OSError as exc:
+        pytest.skip(f"symlinks unavailable: {exc}")
+
+    with pytest.raises(ValueError, match="session path"):
+        getattr(store, operation)(session if operation == "save" else session.session_id)
+
+    assert path.is_symlink()
+    assert outside.exists()

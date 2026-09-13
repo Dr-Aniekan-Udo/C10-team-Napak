@@ -66,16 +66,18 @@ class DocumentProcessor:
             return ""
         headers = [self._citation_header(index, document) for index, document in enumerate(documents, 1)]
         fixed_length = sum(len(header) + 1 for header in headers) + max(0, len(documents) - 1)
+        if fixed_length > self.MAX_CONTEXT_CHARS:
+            raise ValueError("citation headers exceed context budget")
         text_budget = max(0, self.MAX_CONTEXT_CHARS - fixed_length)
         base, remainder = divmod(text_budget, len(documents))
         blocks = []
         for index, (header, document) in enumerate(zip(headers, documents)):
             limit = base + (1 if index < remainder else 0)
             blocks.append(f"{header}\n{document.text[:limit]}")
-        return "\n\n".join(blocks)[: self.MAX_CONTEXT_CHARS]
+        return "\n\n".join(blocks)
 
     @staticmethod
     def _citation_header(index: int, document: RetrievedDocument) -> str:
         source = document.source or "Unknown"
         url = document.source_url or "Unavailable"
-        return f"[{index}] {document.title}\nSource: {source}\nURL: {url}"
+        return f"[{index}] {document.document_id}\nTitle: {document.title}\nSource: {source}\nURL: {url}"
