@@ -15,6 +15,7 @@ wheels/
 .env
 .env.*
 !.env.example
+.local/
 opencode.jsonc
 .opencode/
 .superpowers/
@@ -27,7 +28,7 @@ docs/superpowers/
 run-jup.sh
 run-jup.ps1
 .ipynb_checkpoints/
-scripts/notebook/.ipynb_checkpoints/
+scripts/notebooks/.ipynb_checkpoints/
 scripts/**/__pycache__/
 
 # Local-only source material
@@ -67,7 +68,7 @@ data/dataset-metadata.json
 !scripts/outputs/rerank_candidate_gate.csv
 
 # Experiment 2 is held out of initial public staging until two tests pass.
-scripts/notebook/02_retrieval_experiments.*
+scripts/notebooks/02_retrieval_experiments.*
 
 # Downloaded/large generic data formats outside supplied public CSV/JSON data
 data/local/**

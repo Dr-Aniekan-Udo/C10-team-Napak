@@ -1,0 +1,78 @@
+from pathlib import Path
+
+import pytest
+
+from scripts.utilities.config import AppConfig
+
+
+def _environment(**overrides: str) -> dict[str, str]:
+    values = {
+        "AGRO_RAG_API_BASE_URL": "http://localhost:11434/v1",
+        "AGRO_RAG_API_KEY": "null",
+        "AGRO_RAG_MODEL": "local-model",
+        "AGRO_RAG_DATA_DIR": "data",
+        "AGRO_RAG_SESSION_DIR": ".local/sessions",
+        "AGRO_RAG_RANKER": "cross_encoder",
+        "AGRO_RAG_RANK_MODEL": "rank-model",
+        "AGRO_RAG_TOP_K": "5",
+    }
+    values.update(overrides)
+    return values
+
+
+def test_from_env_normalizes_nullable_key_and_paths() -> None:
+    config = AppConfig.from_env(_environment())
+
+    assert config.api_key is None
+    assert config.api_base_url == "http://localhost:11434/v1"
+    assert config.data_dir == Path("data")
+    assert config.session_dir == Path(".local/sessions")
+    assert config.top_k == 5
+
+
+def test_from_env_accepts_cloud_key_and_preserves_rank_model() -> None:
+    config = AppConfig.from_env(
+        _environment(
+            AGRO_RAG_API_KEY="secret",
+            AGRO_RAG_MODEL="generation-model",
+            AGRO_RAG_RANK_MODEL="independent-rank-model",
+        )
+    )
+
+    assert config.api_key == "secret"
+    assert config.model == "generation-model"
+    assert config.rank_model == "independent-rank-model"
+
+
+@pytest.mark.parametrize("value", ["", "   ", "null", "NULL", "none", "None"])
+def test_from_env_treats_empty_and_null_keys_as_none(value: str) -> None:
+    assert AppConfig.from_env(_environment(AGRO_RAG_API_KEY=value)).api_key is None
+
+
+@pytest.mark.parametrize(
+    "missing",
+    ["AGRO_RAG_API_BASE_URL", "AGRO_RAG_MODEL", "AGRO_RAG_DATA_DIR"],
+)
+def test_from_env_rejects_missing_required_values(missing: str) -> None:
+    environment = _environment()
+    del environment[missing]
+
+    with pytest.raises(ValueError, match=missing):
+        AppConfig.from_env(environment)
+
+
+def test_from_env_rejects_invalid_ranker_and_top_k() -> None:
+    with pytest.raises(ValueError, match="AGRO_RAG_RANKER"):
+        AppConfig.from_env(_environment(AGRO_RAG_RANKER="unknown"))
+    with pytest.raises(ValueError, match="AGRO_RAG_TOP_K"):
+        AppConfig.from_env(_environment(AGRO_RAG_TOP_K="0"))
+
+
+def test_explicit_environment_mapping_wins_over_process_environment(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("AGRO_RAG_MODEL", "process-model")
+
+    config = AppConfig.from_env(_environment(AGRO_RAG_MODEL="explicit-model"))
+
+    assert config.model == "explicit-model"

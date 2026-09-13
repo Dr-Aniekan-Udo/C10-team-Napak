@@ -36,7 +36,7 @@ collection of private stakeholder data.
 
 ## Experiment 1
 
-`scripts/notebook/01_retrieval_experiments.py` is the source of truth for the
+`scripts/notebooks/01_retrieval_experiments.py` is the source of truth for the
 first submitted experiment. Its paired notebook is generated one-way with
 Jupytext.
 
@@ -70,7 +70,7 @@ Use Python 3.12 through `uv`:
 
 ```text
 uv sync
-AGRO_RAG_DATA_DIR=data AGRO_RAG_PROFILE=sparse_local uv run python scripts/notebook/01_retrieval_experiments.py
+AGRO_RAG_DATA_DIR=data AGRO_RAG_PROFILE=sparse_local uv run python scripts/notebooks/01_retrieval_experiments.py
 ```
 
 Dense and reranking profiles are opt-in and may download pretrained models or
@@ -80,7 +80,7 @@ model, license, and profile details.
 For paired notebook maintenance, edit the `.py` file and run:
 
 ```text
-uv run jupytext --sync scripts/notebook/01_retrieval_experiments.py
+uv run jupytext --sync scripts/notebooks/01_retrieval_experiments.py
 ```
 
 Never sync from `.ipynb` to `.py`.
@@ -92,15 +92,15 @@ README.md
 docs/
   research/
 scripts/
-  src/
-  notebook/
+  utilities/
+  notebooks/
   outputs/
   submissions/
 data/
 ```
 
-`scripts/notebook/` contains editable experiment sources and paired notebooks.
-`scripts/src/` contains pure shared retrieval/evaluation helpers.
+`scripts/notebooks/` contains editable experiment sources and paired notebooks.
+`scripts/utilities/` contains pure shared retrieval/evaluation helpers.
 `scripts/outputs/` contains local evidence and runtime artifacts.
 `scripts/submissions/` contains upload-format rankings.
 `data/` contains supplied benchmark files and repository-authored metadata.

@@ -18,6 +18,11 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+app = [
+    "gradio",
+    "openai",
+    "python-dotenv",
+]
 dev = [
     "jupyterlab==4.4.1",
     "jupyter-collaboration==4.0.2",

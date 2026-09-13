@@ -59,11 +59,11 @@ LambdaMART fitting, after selection, uses all 308 training query groups.
 Completed command:
 
 ```text
-AGRO_RAG_PROFILE=rerank_local AGRO_RAG_DATA_DIR="$PWD/data" uv run python scripts/notebook/01_retrieval_experiments.py
+AGRO_RAG_PROFILE=rerank_local AGRO_RAG_DATA_DIR="$PWD/data" uv run python scripts/notebooks/01_retrieval_experiments.py
 ```
 
 ```text
-AGRO_RAG_PROFILE=cross_encoder_cloud AGRO_RAG_DATA_DIR="$PWD/data" uv run python scripts/notebook/01_retrieval_experiments.py
+AGRO_RAG_PROFILE=cross_encoder_cloud AGRO_RAG_DATA_DIR="$PWD/data" uv run python scripts/notebooks/01_retrieval_experiments.py
 ```
 
 The final local `rerank_local` run used existing LightGBM 4.7.0 from the
