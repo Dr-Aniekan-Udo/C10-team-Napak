@@ -20,6 +20,7 @@ dependencies = [
     { name = "kagglehub" },
     { name = "numpy" },
     { name = "pandas" },
+    { name = "python-dotenv" },
     { name = "scikit-learn" },
 ]
 
@@ -27,7 +28,6 @@ dependencies = [
 app = [
     { name = "gradio" },
     { name = "openai" },
-    { name = "python-dotenv" },
 ]
 cross-encoder = [
     { name = "sentence-transformers" },
@@ -67,7 +67,7 @@ requires-dist = [
     { name = "pre-commit", marker = "extra == 'dev'" },
     { name = "pycrdt", marker = "extra == 'dev'" },
     { name = "pytest", marker = "extra == 'dev'" },
-    { name = "python-dotenv", marker = "extra == 'app'" },
+    { name = "python-dotenv" },
     { name = "scikit-learn" },
     { name = "sentence-transformers", marker = "extra == 'cross-encoder'" },
     { name = "sentence-transformers", marker = "extra == 'dense'" },

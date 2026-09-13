@@ -40,6 +40,7 @@ class RetrievedDocument:
     score: float
     rank: int
     source: str | None = None
+    source_url: str | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.document_id, str):
@@ -65,6 +66,11 @@ class RetrievedDocument:
                 raise ValueError("source must be a string or None")
             source = self.source.strip()
             object.__setattr__(self, "source", source or None)
+        if self.source_url is not None:
+            if not isinstance(self.source_url, str):
+                raise ValueError("source_url must be a string or None")
+            source_url = self.source_url.strip()
+            object.__setattr__(self, "source_url", source_url or None)
         if isinstance(self.score, bool) or not isinstance(self.score, (int, float)):
             raise ValueError("score must be a number")
         if not math.isfinite(self.score):

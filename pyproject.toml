@@ -14,6 +14,7 @@ dependencies = [
     "kagglehub",
     "numpy",
     "pandas",
+    "python-dotenv",
     "scikit-learn",
 ]
 
@@ -21,7 +22,6 @@ dependencies = [
 app = [
     "gradio",
     "openai",
-    "python-dotenv",
 ]
 dev = [
     "jupyterlab==4.4.1",
