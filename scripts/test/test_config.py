@@ -69,6 +69,38 @@ def test_from_env_rejects_invalid_ranker_and_top_k() -> None:
         AppConfig.from_env(_environment(AGRO_RAG_TOP_K="0"))
 
 
+@pytest.mark.parametrize(
+    "name",
+    [
+        "AGRO_RAG_API_BASE_URL",
+        "AGRO_RAG_API_KEY",
+        "AGRO_RAG_MODEL",
+        "AGRO_RAG_DATA_DIR",
+        "AGRO_RAG_SESSION_DIR",
+        "AGRO_RAG_RANKER",
+        "AGRO_RAG_RANK_MODEL",
+        "AGRO_RAG_TOP_K",
+    ],
+)
+@pytest.mark.parametrize("source", ["mapping", "process"])
+def test_from_env_rejects_non_string_values(
+    name: str,
+    source: str,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    environment = _environment()
+    environment[name] = object()  # type: ignore[assignment]
+
+    if source == "process":
+        monkeypatch.setattr(config_module.os, "environ", environment)
+        environ = None
+    else:
+        environ = environment
+
+    with pytest.raises(ValueError, match=name):
+        AppConfig.from_env(environ)
+
+
 def test_explicit_environment_mapping_wins_over_process_environment(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

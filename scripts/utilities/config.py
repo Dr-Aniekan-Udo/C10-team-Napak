@@ -60,6 +60,18 @@ class AppConfig:
         values = _DEFAULTS | _load_dotenv(dotenv_path) | dict(os.environ)
         if environ is not None:
             values.update(environ)
+        for name in (
+            "AGRO_RAG_API_BASE_URL",
+            "AGRO_RAG_API_KEY",
+            "AGRO_RAG_MODEL",
+            "AGRO_RAG_DATA_DIR",
+            "AGRO_RAG_SESSION_DIR",
+            "AGRO_RAG_RANKER",
+            "AGRO_RAG_RANK_MODEL",
+            "AGRO_RAG_TOP_K",
+        ):
+            if name in values and not isinstance(values[name], str):
+                raise ValueError(f"{name} must be a string")
 
         api_key_value = values.get("AGRO_RAG_API_KEY", "").strip()
         api_key = None if api_key_value.casefold() in _NULLABLE_VALUES else api_key_value
