@@ -70,7 +70,8 @@ def test_from_env_treats_empty_and_null_keys_as_none(value: str) -> None:
 )
 def test_from_env_rejects_missing_required_values(missing: str) -> None:
     environment = _environment()
-    del environment[missing]
+    # Explicit empty values override any local .env value during this test.
+    environment[missing] = ""
 
     with pytest.raises(ValueError, match=missing):
         AppConfig.from_env(environment)

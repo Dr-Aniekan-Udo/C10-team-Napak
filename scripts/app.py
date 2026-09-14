@@ -33,7 +33,7 @@ from scripts.utilities.agent import build_agent
 from scripts.utilities.config import AppConfig
 from scripts.utilities.document_processor import DocumentProcessor
 from scripts.utilities.models import Session
-from scripts.utilities.ranker import build_ranker
+from scripts.utilities.ranker import DEFAULT_MODEL_LOAD_TIMEOUT, build_ranker
 from scripts.utilities.sessions import SessionStore, SessionSummary
 from scripts.utilities.stream import RagPipeline
 
@@ -41,10 +41,16 @@ from scripts.utilities.stream import RagPipeline
 APP_TITLE = "AGRO RAG / FIELD NOTES"
 SAFETY_NOTICE = "Educational research tool - not agronomic advice"
 SEARCHING_STATUS = "Searching extension library..."
+RERANKER_LOADING_STATUS = "Local reranker loading..."
+RERANKER_READY_STATUS = "Local reranker ready."
+GENERATING_STATUS = "Generating grounded answer..."
 STREAMING_STATUS = "Writing from retrieved sources..."
 SAVED_STATUS = "Saved locally"
 LIMITATION_STATUS = "Corpus limitation: no retrieved evidence was returned."
+RERANKER_UNAVAILABLE_STATUS = "Reranker unavailable; no result generated"
 ERROR_STATUS = "Could not complete request. Check connection, then try again."
+RERANKER_READY_TIMEOUT = DEFAULT_MODEL_LOAD_TIMEOUT
+MAX_QUEUE_SIZE = 4
 
 STARTER_PROMPTS = (
     ("How can I prepare maize for drought?", "How can I prepare a maize field for a dry season?"),
@@ -67,7 +73,12 @@ APP_CSS = r"""
   --moss: #DCE7D8;
   --white-paper: #FCFAF5;
   --shadow: 0 18px 45px rgba(24, 37, 29, .08);
-  min-height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   background: var(--paper);
   color: var(--ink);
   font-family: "Source Sans 3", "Source Sans Pro", system-ui, sans-serif;
@@ -80,20 +91,30 @@ APP_CSS = r"""
 }
 
 #agro-rag-app .agro-shell {
+  display: flex;
+  flex-direction: column;
   width: min(100%, 1440px);
+  height: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+  max-width: 100%;
   margin: 0 auto;
-  padding: 24px clamp(16px, 3vw, 44px) 42px;
+  padding: 18px clamp(16px, 3vw, 44px) 24px;
+  overflow: hidden;
 }
 
 #agro-rag-app #agro-header {
   align-items: center;
+  flex: 0 0 auto;
   gap: 18px;
-  margin-bottom: 22px;
-  padding: 18px 0 20px;
+  min-width: 0;
+  margin-bottom: 16px;
+  padding: 10px 0 14px;
   border-bottom: 1px solid var(--line);
 }
 
 #agro-rag-app #brand-lockup,
+#agro-rag-app #workspace-meta,
 #agro-rag-app #corpus-count,
 #agro-rag-app #local-status,
 #agro-rag-app #safety-notice {
@@ -126,20 +147,60 @@ APP_CSS = r"""
   text-transform: uppercase;
 }
 
+#agro-rag-app #safety-notice {
+  flex: 0 1 250px;
+  min-width: 0;
+  color: rgba(24, 37, 29, .58);
+  font-size: .7rem;
+  line-height: 1.35;
+  text-align: right;
+}
+
+#agro-rag-app #workspace-meta {
+  display: grid;
+  gap: 0;
+  margin: 0 0 15px;
+  padding: 10px 12px 9px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(220, 231, 216, .3);
+}
+
+#agro-rag-app #workspace-meta::before {
+  margin-bottom: 6px;
+  color: var(--clay);
+  content: "Workspace status";
+  font-size: .62rem;
+  font-weight: 800;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+
+#agro-rag-app #workspace-meta #corpus-count,
+#agro-rag-app #workspace-meta #local-status {
+  min-width: 0;
+}
+
 #agro-rag-app .header-stat,
 #agro-rag-app .local-badge {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  min-height: 38px;
-  padding: 8px 12px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
+  min-height: 28px;
+  padding: 5px 0;
+  border: 0;
+  border-bottom: 1px solid rgba(217, 208, 193, .75);
+  border-radius: 0;
   color: var(--forest);
-  background: rgba(252, 250, 245, .55);
-  font-size: .78rem;
+  background: transparent;
+  font-size: .73rem;
   font-weight: 650;
-  white-space: nowrap;
+  line-height: 1.25;
+  white-space: normal;
+}
+
+#agro-rag-app #workspace-meta #local-status .local-badge {
+  border-bottom: 0;
 }
 
 #agro-rag-app .local-badge::before {
@@ -150,43 +211,65 @@ APP_CSS = r"""
   content: "";
 }
 
-#agro-rag-app #safety-notice {
-  flex: 0 1 290px;
-  color: var(--clay);
-  font-size: .75rem;
-  line-height: 1.35;
-  text-align: right;
-}
-
 #agro-rag-app #app-layout {
+  display: grid !important;
   align-items: stretch;
+  grid-template-columns: minmax(220px, 17rem) minmax(0, 1fr) minmax(260px, 22rem);
   gap: 18px;
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
 }
 
 #agro-rag-app .agro-rail,
 #agro-rag-app #chat-panel {
+  height: 100%;
   min-width: 0;
+  min-height: 0;
   border: 1px solid var(--line);
   border-radius: 22px;
   background: rgba(252, 250, 245, .48);
 }
 
-#agro-rag-app .agro-rail {
-  overflow: hidden;
+#agro-rag-app .agro-rail,
+#agro-rag-app #session-rail,
+#agro-rag-app #evidence-rail {
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-color: rgba(32, 84, 62, .42) transparent;
+  scrollbar-width: thin;
   box-shadow: 0 8px 24px rgba(24, 37, 29, .035);
+}
+
+#agro-rag-app #app-layout > .session-column,
+#agro-rag-app #app-layout > .chat-column,
+#agro-rag-app #app-layout > .evidence-column {
+  width: auto !important;
+  min-width: 0 !important;
+  min-height: 0;
+}
+
+#agro-rag-app #app-layout > .chat-column {
+  overflow: hidden;
+}
+
+#agro-rag-app #chat-column {
+  height: 100%;
 }
 
 #agro-rag-app #chat-panel {
   display: flex;
-  min-height: 680px;
   flex-direction: column;
-  padding: clamp(18px, 3vw, 34px);
+  overflow: hidden;
+  padding: clamp(18px, 2.4vw, 30px);
   background: var(--white-paper);
   box-shadow: var(--shadow);
 }
 
 #agro-rag-app .rail-accordion,
 #agro-rag-app .rail-accordion > .label-wrap {
+  min-height: 0;
   border: 0;
   background: transparent;
 }
@@ -200,6 +283,7 @@ APP_CSS = r"""
 }
 
 #agro-rag-app .rail-content {
+  min-height: 0;
   padding: 0 18px 18px;
 }
 
@@ -341,18 +425,66 @@ APP_CSS = r"""
 }
 
 #agro-rag-app #chatbot {
-  flex: 1 1 auto;
-  min-height: 390px;
+  flex: 1 1 0;
+  height: auto !important;
+  min-width: 0;
+  min-height: 0;
+  max-height: none;
   border: 0;
   background: transparent;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+#agro-rag-app #chatbot > .wrap,
+#agro-rag-app #chatbot .message-wrap {
+  min-width: 0;
+  min-height: 0;
+}
+
+#agro-rag-app #chatbot .wrap {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+#agro-rag-app #chatbot .message-content {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overflow-wrap: anywhere;
+  scrollbar-color: rgba(32, 84, 62, .42) transparent;
+  scrollbar-width: thin;
+}
+
+#agro-rag-app #chatbot .message-content table {
+  width: max-content;
+  min-width: 42rem;
+  max-width: none;
+  table-layout: auto;
+}
+
+#agro-rag-app #chatbot .message-content th,
+#agro-rag-app #chatbot .message-content td {
+  min-width: 8rem;
+  white-space: normal;
+  word-break: normal;
+  overflow-wrap: break-word;
+}
+
+#agro-rag-app #chatbot .message-content th:first-child,
+#agro-rag-app #chatbot .message-content td:first-child {
+  min-width: 11rem;
 }
 
 #agro-rag-app #chatbot .message {
+  min-width: 0;
   max-width: 72ch;
 }
 
 #agro-rag-app #composer {
   align-items: flex-end;
+  flex: 0 0 auto;
   gap: 10px;
   margin-top: 20px;
   padding-top: 16px;
@@ -384,6 +516,7 @@ APP_CSS = r"""
 }
 
 #agro-rag-app #query-status {
+  flex: 0 0 auto;
   min-height: 24px;
   margin-top: 10px;
   color: rgba(24, 37, 29, .64);
@@ -395,7 +528,8 @@ APP_CSS = r"""
 }
 
 #agro-rag-app #evidence-cards {
-  min-height: 250px;
+  min-width: 0;
+  min-height: 0;
   border: 0;
   background: transparent;
 }
@@ -424,11 +558,13 @@ APP_CSS = r"""
 }
 
 #agro-rag-app .source-card {
+  min-width: 0;
   margin: 0 0 12px;
   padding: 15px;
   border: 1px solid var(--line);
   border-radius: 15px;
   background: rgba(252, 250, 245, .72);
+  overflow: visible;
 }
 
 #agro-rag-app .source-card:last-child {
@@ -456,7 +592,6 @@ APP_CSS = r"""
 
 #agro-rag-app .source-id,
 #agro-rag-app .source-publisher,
-#agro-rag-app .source-meta,
 #agro-rag-app .source-details {
   color: rgba(24, 37, 29, .68);
   font-size: .73rem;
@@ -474,20 +609,41 @@ APP_CSS = r"""
   margin: 9px 0 0;
 }
 
-#agro-rag-app .source-meta {
-  display: flex;
-  flex-wrap: wrap;
+#agro-rag-app .source-metadata {
+  display: grid;
   gap: 6px;
-  margin-top: 10px;
+  margin: 11px 0 0;
+  padding: 0;
 }
 
-#agro-rag-app .source-meta span {
-  padding: 4px 7px;
-  border-radius: 999px;
+#agro-rag-app .source-meta-row {
+  display: grid;
+  grid-template-columns: minmax(4.7rem, 5.4rem) minmax(0, 1fr);
+  gap: 8px;
+  align-items: baseline;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(217, 208, 193, .62);
+}
+
+#agro-rag-app .source-meta-row:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+#agro-rag-app .source-metadata dt {
+  color: rgba(24, 37, 29, .5);
+  font-size: .62rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+#agro-rag-app .source-metadata dd {
+  min-width: 0;
+  margin: 0;
   color: var(--forest);
-  background: var(--moss);
-  font-size: .67rem;
-  font-weight: 700;
+  font-size: .73rem;
+  overflow-wrap: anywhere;
 }
 
 #agro-rag-app .source-details {
@@ -517,6 +673,7 @@ APP_CSS = r"""
 }
 
 #agro-rag-app .source-details a {
+  overflow-wrap: anywhere;
   color: var(--forest);
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
@@ -531,10 +688,25 @@ APP_CSS = r"""
   filter: saturate(1.08) brightness(.98);
 }
 
-@media (max-width: 1060px) {
+@media (max-width: 1099px) {
+  #agro-rag-app {
+    height: auto;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    overflow-y: visible;
+  }
+
+  #agro-rag-app .agro-shell {
+    height: auto;
+    min-height: 100dvh;
+    padding: 14px 16px 30px;
+    overflow: visible;
+  }
+
   #agro-rag-app #agro-header {
     align-items: flex-start;
     flex-wrap: wrap;
+    margin-bottom: 14px;
   }
 
   #agro-rag-app #brand-lockup {
@@ -545,23 +717,30 @@ APP_CSS = r"""
     flex-basis: 100%;
     text-align: left;
   }
-}
-
-@media (max-width: 900px) {
-  #agro-rag-app .agro-shell {
-    padding: 12px 12px 28px;
-  }
 
   #agro-rag-app #app-layout {
+    display: flex !important;
     flex-direction: column;
+    flex: 0 0 auto;
+    gap: 12px;
+    overflow: visible;
   }
 
   #agro-rag-app .session-column,
   #agro-rag-app .chat-column,
   #agro-rag-app .evidence-column {
+    height: auto;
     width: 100% !important;
     min-width: 0 !important;
-    flex: 1 1 auto !important;
+    flex: 0 0 auto !important;
+  }
+
+  #agro-rag-app #app-layout > .chat-column {
+    overflow: visible;
+  }
+
+  #agro-rag-app #chat-column {
+    height: auto;
   }
 
   #agro-rag-app .chat-column {
@@ -576,9 +755,44 @@ APP_CSS = r"""
     order: 3;
   }
 
+  #agro-rag-app #session-rail,
+  #agro-rag-app #evidence-rail {
+    height: auto;
+    background: rgba(252, 250, 245, .35);
+  }
+
+  #agro-rag-app #session-rail {
+    max-height: none;
+    overflow: visible;
+  }
+
+  #agro-rag-app #evidence-rail {
+    max-height: min(32rem, 60vh);
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
   #agro-rag-app #chat-panel {
-    min-height: 620px;
+    height: auto;
+    min-height: 0;
     padding: 18px 14px;
+    overflow: visible;
+  }
+
+  #agro-rag-app #chatbot {
+    flex: 0 1 auto;
+    height: clamp(18rem, 52vh, 32rem) !important;
+    min-height: 18rem;
+    max-height: 32rem;
+    overflow: hidden;
+  }
+
+  #agro-rag-app #chatbot > .wrap {
+    overflow-y: auto;
+  }
+
+  #agro-rag-app #chat-panel {
+    box-shadow: 0 12px 32px rgba(24, 37, 29, .07);
   }
 
   #agro-rag-app #composer {
@@ -589,6 +803,7 @@ APP_CSS = r"""
     margin-left: -14px;
     padding: 14px;
     background: rgba(252, 250, 245, .96);
+    box-shadow: 0 -10px 24px rgba(24, 37, 29, .06);
   }
 
   #agro-rag-app #empty-state {
@@ -604,15 +819,74 @@ APP_CSS = r"""
   }
 }
 
-@media (max-width: 560px) {
+@media (max-width: 640px) {
+  #agro-rag-app .agro-shell {
+    padding: 12px 10px 24px;
+  }
+
   #agro-rag-app #agro-header {
     gap: 10px;
   }
 
+  #agro-rag-app #safety-notice {
+    max-width: 31ch;
+  }
+
+  #agro-rag-app #chat-panel {
+    padding: 16px 12px;
+  }
+
+  #agro-rag-app #chatbot {
+    height: clamp(17rem, 50vh, 28rem) !important;
+    min-height: 17rem;
+    max-height: 28rem;
+  }
+
+  #agro-rag-app #composer {
+    margin-right: -12px;
+    margin-left: -12px;
+    padding: 12px;
+  }
+
+  #agro-rag-app #message-input textarea {
+    min-height: 78px;
+  }
+
+  #agro-rag-app .source-card {
+    padding: 13px;
+  }
+
+  #agro-rag-app .source-meta-row {
+    grid-template-columns: minmax(4.4rem, 4.9rem) minmax(0, 1fr);
+    gap: 6px;
+  }
+
+  #agro-rag-app .rail-accordion > .label-wrap {
+    padding-right: 14px;
+    padding-left: 14px;
+  }
+
+  #agro-rag-app .rail-content {
+    padding-right: 14px;
+    padding-left: 14px;
+  }
+
+  #agro-rag-app .workspace-meta {
+    margin-bottom: 12px;
+  }
+
+  #agro-rag-app .brand-mark {
+    font-size: 1.35rem;
+  }
+
+  #agro-rag-app .brand-kicker {
+    font-size: .6rem;
+  }
+
   #agro-rag-app .header-stat,
   #agro-rag-app .local-badge {
-    min-height: 34px;
-    padding: 6px 9px;
+    min-height: 26px;
+    padding: 4px 0;
     font-size: .7rem;
   }
 
@@ -658,6 +932,32 @@ def build_default_pipeline() -> RagPipeline:
     return RagPipeline(processor, ranker, agent, sessions, top_k=config.top_k)
 
 
+def _shutdown_pipeline(pipeline: object) -> None:
+    """Best-effort teardown for optional pipeline/reranker lifecycle owners."""
+
+    target = getattr(pipeline, "ranker", None)
+    shutdown = getattr(target, "shutdown", None)
+    if not callable(shutdown):
+        shutdown = getattr(pipeline, "shutdown", None)
+    if not callable(shutdown):
+        return
+    try:
+        shutdown()
+    except BaseException:
+        # Application shutdown must not replace the original launch failure.
+        return
+
+
+def _launch_default_app() -> None:
+    """Retain configured runtime so its owned worker is closed on exit."""
+
+    pipeline = build_default_pipeline()
+    try:
+        create_app(pipeline).launch()
+    finally:
+        _shutdown_pipeline(pipeline)
+
+
 def create_app(pipeline: RagPipeline | None = None) -> gr.Blocks:
     """Compose the offline-safe Gradio UI around an injected or configured pipeline."""
 
@@ -665,6 +965,12 @@ def create_app(pipeline: RagPipeline | None = None) -> gr.Blocks:
     metadata = _metadata_for_pipeline(runtime)
     saved_sessions = _list_saved_sessions(runtime)
     initial_session_choices = _radio_choices(saved_sessions)
+    initial_query_status = _initial_query_status(runtime)
+    reranker_status_timer: gr.Timer | None = None
+    corpus_status_html = (
+        f'<span class="header-stat">Local corpus · {_corpus_count(runtime)} documents</span>'
+    )
+    saved_status_html = f'<span class="local-badge">{html.escape(SAVED_STATUS)}</span>'
 
     blocks_kwargs: dict[str, object] = {
         "analytics_enabled": False,
@@ -690,16 +996,6 @@ def create_app(pipeline: RagPipeline | None = None) -> gr.Blocks:
                     container=False,
                 )
                 gr.HTML(
-                    f'<span class="header-stat">Local corpus · {_corpus_count(runtime)} documents</span>',
-                    elem_id="corpus-count",
-                    container=False,
-                )
-                gr.HTML(
-                    f'<span class="local-badge">{html.escape(SAVED_STATUS)}</span>',
-                    elem_id="local-status",
-                    container=False,
-                )
-                gr.HTML(
                     f'<span>{html.escape(SAFETY_NOTICE)}</span>',
                     elem_id="safety-notice",
                     container=False,
@@ -708,7 +1004,7 @@ def create_app(pipeline: RagPipeline | None = None) -> gr.Blocks:
             with gr.Row(elem_id="app-layout", variant="panel"):
                 with gr.Column(
                     scale=4,
-                    min_width=250,
+                    min_width=220,
                     elem_id="session-rail",
                     elem_classes=["agro-rail", "session-column"],
                 ):
@@ -723,6 +1019,17 @@ def create_app(pipeline: RagPipeline | None = None) -> gr.Blocks:
                                 "Keep field notes close. Sessions stay on this machine.",
                                 elem_classes=["rail-intro"],
                             )
+                            with gr.Column(elem_id="workspace-meta", elem_classes=["workspace-meta"]):
+                                gr.HTML(
+                                    corpus_status_html,
+                                    elem_id="corpus-count",
+                                    container=False,
+                                )
+                                gr.HTML(
+                                    saved_status_html,
+                                    elem_id="local-status",
+                                    container=False,
+                                )
                             new_conversation = gr.Button(
                                 "New conversation",
                                 variant="primary",
@@ -791,8 +1098,8 @@ def create_app(pipeline: RagPipeline | None = None) -> gr.Blocks:
                         chatbot = gr.Chatbot(
                             value=[],
                             show_label=False,
-                            height=440,
-                            min_height=350,
+                            height="100%",
+                            min_height=0,
                             autoscroll=True,
                             sanitize_html=True,
                             render_markdown=True,
@@ -819,13 +1126,18 @@ def create_app(pipeline: RagPipeline | None = None) -> gr.Blocks:
                                 elem_id="ask-button",
                             )
                         query_status = gr.Markdown(
-                            "Ready when you are.",
+                            initial_query_status,
                             elem_id="query-status",
                         )
+                        if _has_reranker_lifecycle(runtime):
+                            reranker_status_timer = gr.Timer(
+                                value=1.0,
+                                active=initial_query_status == RERANKER_LOADING_STATUS,
+                            )
 
                 with gr.Column(
                     scale=5,
-                    min_width=290,
+                    min_width=260,
                     elem_id="evidence-rail",
                     elem_classes=["agro-rail", "evidence-column"],
                 ):
@@ -919,6 +1231,15 @@ def create_app(pipeline: RagPipeline | None = None) -> gr.Blocks:
             show_progress="hidden",
             api_name="load_conversation",
         )
+        if reranker_status_timer is not None:
+            _register_reranker_status_poll(
+                reranker_status_timer,
+                runtime,
+                query_status,
+            )
+
+    _configure_queue(app)
+    _start_reranker_warmup(runtime)
 
     app.show_error = False
     if not blocks_accepts_css:
@@ -927,6 +1248,17 @@ def create_app(pipeline: RagPipeline | None = None) -> gr.Blocks:
         # factory callers can still inspect the complete app configuration.
         app.css = APP_CSS
         app._deprecated_css = APP_CSS  # type: ignore[attr-defined]
+
+    teardown_called = False
+
+    def teardown() -> None:
+        nonlocal teardown_called
+        if teardown_called:
+            return
+        teardown_called = True
+        _shutdown_pipeline(runtime)
+
+    app.teardown = teardown  # type: ignore[attr-defined]
     return app
 
 
@@ -966,7 +1298,12 @@ def render_source_cards(
         for field in ("crop", "country", "origin"):
             value = _display_value(source, field, None, metadata)
             if value is not None:
-                metadata_rows.append(f'<span>{html.escape(field.title())}: {html.escape(value)}</span>')
+                metadata_rows.append(
+                    '<div class="source-meta-row">'
+                    f"<dt>{html.escape(field.title())}</dt>"
+                    f"<dd>{html.escape(value)}</dd>"
+                    "</div>"
+                )
 
         source_url = _display_value(source, "source_url", None, metadata)
         license_value = _display_value(source, "license", None, metadata)
@@ -999,7 +1336,11 @@ def render_source_cards(
                 + "".join(detail_rows)
                 + "</details>"
             )
-        metadata_html = f'<div class="source-meta">{"".join(metadata_rows)}</div>' if metadata_rows else ""
+        metadata_html = (
+            f'<dl class="source-metadata">{"".join(metadata_rows)}</dl>'
+            if metadata_rows
+            else ""
+        )
         cards.append(
             f'<article class="source-card" id="source-card-{index}">'
             f'<span class="source-rank">Rank {html.escape(rank)}</span>'
@@ -1039,11 +1380,65 @@ def _make_message_handler(
             return
 
         question = message.strip()
+        if _has_reranker_lifecycle(pipeline):
+            yield (
+                base_history,
+                gr.update(value="", interactive=False),
+                gr.update(interactive=False),
+                RERANKER_LOADING_STATUS,
+                render_source_cards(base_sources, metadata=metadata),
+                list(base_sources),
+                gr.update(visible=False),
+                session_id if isinstance(session_id, str) else None,
+                gr.update(),
+                gr.update(),
+            )
+            if not _wait_for_reranker(pipeline):
+                selected_id = session_id if isinstance(session_id, str) else None
+                groups, choices = _session_control_updates(pipeline, selected_id)
+                yield (
+                    base_history,
+                    gr.update(value=question, interactive=True),
+                    gr.update(interactive=True),
+                    _reranker_failure_status(pipeline),
+                    render_source_cards(base_sources, metadata=metadata),
+                    list(base_sources),
+                    gr.update(visible=not base_history),
+                    selected_id,
+                    groups,
+                    choices,
+                )
+                return
+
+            yield (
+                base_history,
+                gr.update(value="", interactive=False),
+                gr.update(interactive=False),
+                RERANKER_READY_STATUS,
+                render_source_cards(base_sources, metadata=metadata),
+                list(base_sources),
+                gr.update(visible=False),
+                session_id if isinstance(session_id, str) else None,
+                gr.update(),
+                gr.update(),
+            )
         yield (
             base_history,
             gr.update(value="", interactive=False),
             gr.update(interactive=False),
             SEARCHING_STATUS,
+            render_source_cards(base_sources, metadata=metadata),
+            list(base_sources),
+            gr.update(visible=False),
+            session_id if isinstance(session_id, str) else None,
+            gr.update(),
+            gr.update(),
+        )
+        yield (
+            base_history,
+            gr.update(value="", interactive=False),
+            gr.update(interactive=False),
+            GENERATING_STATUS,
             render_source_cards(base_sources, metadata=metadata),
             list(base_sources),
             gr.update(visible=False),
@@ -1123,11 +1518,16 @@ def _make_message_handler(
                     pass
             selected_id = session_id if isinstance(session_id, str) else None
             groups, choices = _session_control_updates(pipeline, selected_id)
+            failure_status = (
+                RERANKER_UNAVAILABLE_STATUS
+                if _reranker_is_unavailable(pipeline)
+                else ERROR_STATUS
+            )
             yield (
                 base_history,
                 gr.update(value=question, interactive=True),
                 gr.update(interactive=True),
-                ERROR_STATUS,
+                failure_status,
                 render_source_cards(base_sources, metadata=metadata),
                 list(base_sources),
                 gr.update(visible=not base_history),
@@ -1137,6 +1537,141 @@ def _make_message_handler(
             )
 
     return handle_message
+
+
+def _configure_queue(app: gr.Blocks) -> None:
+    """Keep local model work bounded when installed Gradio exposes queue controls."""
+
+    try:
+        queue_parameters = inspect.signature(app.queue).parameters
+    except (TypeError, ValueError):
+        return
+
+    queue_kwargs: dict[str, object] = {}
+    if "max_size" in queue_parameters:
+        queue_kwargs["max_size"] = MAX_QUEUE_SIZE
+    if "default_concurrency_limit" in queue_parameters:
+        queue_kwargs["default_concurrency_limit"] = 1
+    if queue_kwargs:
+        app.queue(**queue_kwargs)
+
+
+def _start_reranker_warmup(pipeline: object) -> None:
+    """Start one guarded background warm-up without blocking app construction."""
+
+    ranker = getattr(pipeline, "ranker", None)
+    start_warmup = getattr(ranker, "start_warmup", None)
+    if not callable(start_warmup):
+        return
+    try:
+        start_warmup()
+    except Exception:
+        # Query handling turns lifecycle failures into a safe no-answer state.
+        return
+
+
+def _has_reranker_lifecycle(pipeline: object) -> bool:
+    ranker = getattr(pipeline, "ranker", None)
+    return callable(getattr(ranker, "start_warmup", None)) and callable(
+        getattr(ranker, "wait_until_ready", None)
+    )
+
+
+def _poll_reranker_status(
+    pipeline: object,
+    current_status: object,
+) -> tuple[object, object]:
+    """Poll lifecycle state without touching model-loading or message work."""
+
+    stop_timer = gr.update(active=False)
+    if not _has_reranker_lifecycle(pipeline) or current_status != RERANKER_LOADING_STATUS:
+        return gr.skip(), stop_timer
+
+    ranker = getattr(pipeline, "ranker", None)
+    try:
+        state = getattr(ranker, "state")
+    except Exception:
+        return RERANKER_UNAVAILABLE_STATUS, stop_timer
+    if state in {"not_started", "loading"}:
+        return RERANKER_LOADING_STATUS, gr.skip()
+    if state == "ready":
+        return RERANKER_READY_STATUS, stop_timer
+    if state == "unavailable":
+        return RERANKER_UNAVAILABLE_STATUS, stop_timer
+    return gr.skip(), stop_timer
+
+
+def _register_reranker_status_poll(
+    timer: gr.Timer,
+    pipeline: object,
+    query_status: gr.Markdown,
+) -> None:
+    try:
+        tick_parameters = inspect.signature(timer.tick).parameters
+    except (TypeError, ValueError):
+        return
+
+    tick_kwargs: dict[str, object] = {
+        "inputs": [query_status],
+        "outputs": [query_status, timer],
+        "show_progress": "hidden",
+        "api_name": False,
+    }
+    if "queue" in tick_parameters:
+        tick_kwargs["queue"] = False
+    timer.tick(
+        lambda current_status: _poll_reranker_status(pipeline, current_status),
+        **tick_kwargs,
+    )
+
+
+def _wait_for_reranker(pipeline: object) -> bool:
+    """Wait for the injected local reranker, accepting only its ready state."""
+
+    ranker = getattr(pipeline, "ranker", None)
+    wait_until_ready = getattr(ranker, "wait_until_ready", None)
+    if not callable(wait_until_ready):
+        return True
+    try:
+        ready = wait_until_ready(RERANKER_READY_TIMEOUT)
+        state = getattr(ranker, "state")
+    except Exception:
+        return False
+    return bool(ready) and state == "ready"
+
+
+def _reranker_failure_status(pipeline: object) -> str:
+    ranker = getattr(pipeline, "ranker", None)
+    try:
+        if getattr(ranker, "state") == "loading":
+            return RERANKER_LOADING_STATUS
+    except Exception:
+        pass
+    return RERANKER_UNAVAILABLE_STATUS
+
+
+def _reranker_is_unavailable(pipeline: object) -> bool:
+    if not _has_reranker_lifecycle(pipeline):
+        return False
+    try:
+        return getattr(getattr(pipeline, "ranker"), "state") == "unavailable"
+    except Exception:
+        return False
+
+
+def _initial_query_status(pipeline: object) -> str:
+    ranker = getattr(pipeline, "ranker", None)
+    if ranker is None or not _has_reranker_lifecycle(pipeline):
+        return "Ready when you are."
+    try:
+        state = getattr(ranker, "state")
+    except Exception:
+        return RERANKER_UNAVAILABLE_STATUS
+    if state in {"not_started", "loading"}:
+        return RERANKER_LOADING_STATUS
+    if state == "ready":
+        return RERANKER_READY_STATUS
+    return RERANKER_UNAVAILABLE_STATUS
 
 
 def _reset_conversation(
@@ -1336,6 +1871,15 @@ def _normalise_history(value: object) -> list[dict[str, str]]:
             continue
         role = item.get("role")
         content = item.get("content")
+        if isinstance(content, Sequence) and not isinstance(content, (str, bytes)):
+            text_parts: list[str] = []
+            for block in content:
+                if not isinstance(block, Mapping) or block.get("type") != "text":
+                    continue
+                text = block.get("text")
+                if isinstance(text, str):
+                    text_parts.append(text)
+            content = "".join(text_parts) if text_parts else None
         if role in {"user", "assistant"} and isinstance(content, str):
             history.append({"role": role, "content": content})
     return history
@@ -1414,4 +1958,4 @@ def _corpus_count(pipeline: object) -> str:
 
 
 if __name__ == "__main__":
-    create_app().launch()
+    _launch_default_app()

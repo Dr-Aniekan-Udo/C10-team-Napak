@@ -1,160 +1,111 @@
-# C10 Team Napak: Agricultural Extension RAG
+# C10-team-Napak — Agricultural Extension Retrieval/RAG Benchmark
 
-Public research repository for C10 Team Napak's agricultural-extension retrieval
-work. The project addresses the retrieval half of a retrieval-augmented
-generation (RAG) system: given a smallholder farmer's question, rank the most
-relevant extension documents before an answer is generated.
+C10 Team Napak benchmarks retrieval/RAG: ranking agricultural-extension documents before generation. Education/benchmarking; not agronomic advice.
 
-## Problem
+## Dataset
 
-The supplied benchmark contains 695 agricultural-extension documents, 308
-training queries with graded relevance labels, and 200 test queries whose labels
-are hidden by the competition. Documents cover crop disease, pests, nutrients,
-soil, fertilizer, and climate-related guidance for Sub-Saharan African
-smallholder agriculture. Submissions use `QueryId,DocumentId` rows with five
-unique documents per test query.
+Tri-AI/Kaggle: 695 documents; 308 labeled train queries; 200 unlabeled test queries; graded `qrels_train.csv`. Submit five unique in-corpus document IDs per test query (1,000 rows), in rank order. Agricultural extension: Sub-Saharan Africa.
 
-This repository is for education and retrieval/RAG benchmarking. It is not
-agronomic advice. Synthetic and LLM-grounded text can contain simplifications or
-errors and must not guide real farming decisions.
+Only supplied corpus used. Row `source_url`/`license` govern attribution/reuse. Synthetic rows are competition content; LLM-grounded rows derive from CC-BY/CC0. See [schema/licensing notes](dataset-metadata-for-agriculture-retrieval-benchmark.md). Future: larger permitted/licensed agro-education corpus from government and other authoritative agriculture sites; not completed.
 
-## Data Boundary
+## Training Pipeline
 
-`data/` contains the supplied competition files and repository-authored metadata
-describing them. That metadata and documentation elsewhere in the repository are
-not additional corpus content. `data/` is not an unrestricted web corpus or a
-collection of private stakeholder data.
+Source of truth: `scripts/notebooks/01_retrieval_experiments.py`; paired notebook derives one-way via Jupytext. [Ledger](docs/research/retrieval-methods.md) records evidence. Pipeline: normalize IDs, combine title/body text, seed `42`, grouped 80/20 split, fixed `candidate_k=100` pool. No external documents, hidden labels, or paid/API generation.
 
-- Rows with `origin=synthetic` are original competition content released under
-  CC0. Their `source` values are stylistic publisher labels, not claims of text
-  copied from those organizations.
-- Rows with `origin=llm_grounded` derive from CC-BY/CC0 open-access material.
-  Reuse must retain attribution from each row's `source_url` and `license`
-  fields.
-- The complete dataset boundary and column schemas are documented in
-  `dataset-metadata-for-agriculture-retrieval-benchmark.md`.
+- Word/character TF-IDF use title weights 1/2; BM25 uses `k1=1.5`, `b=0.75`, title weights 1/2; sparse RRF uses `rrf_k=60`.
+- Dense retrieval uses normalized 384-dimensional `sentence-transformers/all-MiniLM-L6-v2` embeddings.
+- `lightgbm.LGBMRanker` / LambdaMART uses candidate/rank/lexical/dense/domain features.
+- `cross-encoder/ms-marco-MiniLM-L-6-v2` scores candidate pairs as an inference-only reranker.
 
-## Experiment 1
+Only LambdaMART trains; TF-IDF/BM25 fit indexes; dense/cross-encoder are pretrained inference models; RRF is rank fusion.
 
-`scripts/notebooks/01_retrieval_experiments.py` is the source of truth for the
-first submitted experiment. Its paired notebook is generated one-way with
-Jupytext.
+## Evaluation
 
-1. Load supplied files from `data/` or an explicit `AGRO_RAG_DATA_DIR`.
-2. Use deterministic grouped 80/20 validation with seed `42`.
-3. Compare sparse lexical retrieval, dense embeddings, sparse+dense RRF, gated
-   LambdaMART, and a cross-encoder reranker.
-4. Build a 100-document candidate gate before reranking and validate submission
-   shape and document membership.
-5. Keep validation evidence separate from unlabeled test rankings and Kaggle
-   leaderboard evidence.
+Metric: deterministic grouped 80/20 validation nDCG@5, seed `42`. Grade-aware nDCG@5 uses `3/2/1`; positive recall counts relevance >0. Candidate gate: recall@50/@100 ≥ `0.80`, each ≥ `0.20` above recall@5. Ties use document ID. Submission checks: five unique in-corpus IDs/query, 1,000 rows; validation stays separate from test.
 
-Selected local evidence for the cross-encoder submission:
+| Method | Model | nDCG@5 | Decision |
+|---|---|---:|---|
+| Word TF-IDF, title 1 | none | 0.526531 | Not selected |
+| Word TF-IDF, title 2 | none | 0.539542 | Not selected |
+| Character TF-IDF, title 1 | none | 0.532335 | Not selected |
+| Character TF-IDF, title 2 | none | 0.543535 | Sparse baseline; submission 1 |
+| BM25, title 1 | none | 0.432336 | Not selected |
+| BM25, title 2 | none | 0.452283 | Not selected |
+| Sparse RRF | rank fusion | 0.499061 | Not selected |
+| Dense embeddings | `all-MiniLM-L6-v2` | 0.6583537503 | Retained; submission 2 submitted on Kaggle before deadline |
+| Sparse+dense RRF | MiniLM + sparse | 0.6438034025 | Comparison; submission 3 generated |
+| LambdaMART reranker | `LGBMRanker` / LightGBM 4.7.0 | 0.7584923684 | Comparison; submission 4 generated |
+| Cross-encoder reranker | `cross-encoder/ms-marco-MiniLM-L-6-v2` | 0.8484345554 | Best local model at close; submission 5 not submitted due to a team technical issue |
 
-| Evidence layer | Result | Interpretation |
-|---|---:|---|
-| Local grouped validation nDCG@5 | `0.8484345554` | Cross-encoder reranking on the fixed local holdout |
-| Candidate recall@100 | `0.9854273` | Candidate-pool coverage diagnostic |
-| Kaggle public nDCG@5 | `0.86625` | External/project-record leaderboard snapshot |
-| Kaggle private nDCG@5 | `0.83607` | External/project-record leaderboard snapshot |
+Character TF-IDF is sparse lane; dense improved semantic coverage; RRF is comparison; LambdaMART improved ordering; cross-encoder won same holdout. The split overlaps 34 positive IDs, so it is not independent evidence. Test labels hidden; no local test score is claimed.
 
-The Kaggle values are external/project-record post-submission leaderboard
-snapshots for `scripts/submissions/submission-5-cross-encoder.csv`. They are not
-local validation metrics, locally recomputed hidden-label evidence, or training
-targets. Project records identify submission-5 as Experiment 1's highest-scoring
-submitted artifact.
+Records list Kaggle public `0.86625` and private `0.83607` nDCG@5 as external/project-record snapshots from deadline submissions—not local validation, hidden-label recomputation, or cross-encoder results. Submission 2 was submitted on Kaggle before the deadline; submission 5 was not submitted because of the team technical issue.
 
-## Reproduce
+## Reproduction
 
-Use Python 3.12 through `uv`:
+From root, generate the cross-encoder test artifact first:
 
-```text
-uv sync
-AGRO_RAG_DATA_DIR=data AGRO_RAG_PROFILE=sparse_local uv run python scripts/notebooks/01_retrieval_experiments.py
+```powershell
+uv sync --extra cross_encoder
+$env:AGRO_RAG_PROFILE = "cross_encoder_cloud"
+$env:AGRO_RAG_DATA_DIR = "$PWD\data"
+uv run python scripts/notebooks/01_retrieval_experiments.py
 ```
 
-Dense and reranking profiles are opt-in and may download pretrained models or
-take substantial CPU/GPU time. See `docs/research/retrieval-methods.md` for
-model, license, and profile details.
+Reads `data/test_queries.csv`, scores 200 test queries, validates five unique in-corpus IDs/query, and writes `scripts/submissions/submission-5-cross-encoder.csv` (1,000 rows); evidence in `scripts/outputs/`. Weights may download; CPU runtime may be substantial. This command does not evaluate hidden labels.
 
-## Local Field Notes App
+Optional profiles, in order:
 
-The thin Gradio app keeps retrieval evidence beside each streamed answer. It
-reads the same `documents.csv` corpus, stores sessions under the ignored
-`.local/sessions/` directory, and never treats ranker scores as confidence.
+```powershell
+$env:AGRO_RAG_PROFILE = "sparse_local"
+uv run python scripts/notebooks/01_retrieval_experiments.py
 
-Set local configuration from the committed template, then launch app directly
-from repository root:
+uv sync --extra dense --extra rerank
+$env:AGRO_RAG_PROFILE = "dense_cloud"
+uv run python scripts/notebooks/01_retrieval_experiments.py
 
-```text
-Copy-Item .env.example .env
-# Edit .env: set AGRO_RAG_API_BASE_URL, AGRO_RAG_MODEL, and AGRO_RAG_DATA_DIR.
-# Keep AGRO_RAG_API_KEY=null for a local OpenAI-compatible server.
-uv run --extra app python scripts/app.py
+$env:AGRO_RAG_PROFILE = "rerank_local"
+uv run python scripts/notebooks/01_retrieval_experiments.py
 ```
 
-For a hosted OpenAI-compatible provider, set `AGRO_RAG_API_BASE_URL` and
-`AGRO_RAG_API_KEY` in `.env`; do not commit that file. The default cross-encoder
-ranker loads weights only when the first question is submitted. Install the
-matching optional retrieval extra before using that ranker:
+Artifacts: `scripts/submissions/submission-1.csv`, `scripts/submissions/submission-2-dense.csv`, `scripts/submissions/submission-3-hybrid-rrf.csv`, `scripts/submissions/submission-4-lambdamart.csv`, `scripts/submissions/submission-5-cross-encoder.csv`. No hidden-label eval. Notebook:
 
-```text
-uv sync --extra app --extra cross_encoder
-```
-
-Importing `scripts.app` or calling `create_app` with an injected pipeline does
-not launch Gradio, call the provider, or load model weights.
-
-For paired notebook maintenance, edit the `.py` file and run:
-
-```text
+```powershell
 uv run jupytext --sync scripts/notebooks/01_retrieval_experiments.py
 ```
 
 Never sync from `.ipynb` to `.py`.
 
-## Repository Layout
+### Secondary RAG app
 
-```text
-README.md
-docs/
-  research/
-scripts/
-  utilities/
-  notebooks/
-  outputs/
-  submissions/
-data/
+```powershell
+Copy-Item .env.example .env
+# Edit .env: AGRO_RAG_API_BASE_URL, AGRO_RAG_API_KEY, AGRO_RAG_MODEL, AGRO_RAG_DATA_DIR
+uv sync --extra app --extra cross_encoder
+uv run python scripts/app.py
 ```
 
-`scripts/notebooks/` contains editable experiment sources and paired notebooks.
-`scripts/utilities/` contains pure shared retrieval/evaluation helpers.
-`scripts/outputs/` contains local evidence and runtime artifacts.
-`scripts/submissions/` contains upload-format rankings.
-`data/` contains supplied benchmark files and repository-authored metadata.
+Keep `.env` local and uncommitted. `AGRO_RAG_API_KEY=null` is valid only for a keyless local OpenAI-compatible endpoint. App setup is separate from submission inference.
 
-Experiment 2 is intentionally omitted from the initial public package until two
-additional tests pass. This README does not claim Experiment 2 is complete.
+## Appendix
 
-## Artifact Policy
+**Team — C10 Team Napak**
 
-Initial public packaging tracks the supplied `data/`, Experiment 1 notebook 01,
-the required shared source, curated Experiment 1 summaries, submissions 1--5,
-documentation placeholders, and reproducibility metadata (`pyproject.toml`,
-`uv.lock`, `.python-version`, and `run-jup.sh.example`).
+- Aniekan Etim Udo — Team representative
+- Okolo Collins Lfesinachi
+- Oluwatosin Oluwatimilehin Olajide
+- Aina Temiloluwa
+- Mentors: Oluwaseun Ajayi, Samuel Taiwo, Adnan Adetunji
 
-Raw `.npy` embeddings, large candidate/test-ranking CSVs, per-query dumps,
-checkpoints, model weights, caches, secrets, and local OpenCode/Jupyter runtime
-files remain local or ignored. Experiment 2 is intentionally excluded from the
-initial public package until two additional tests pass.
+Experiment 02 is not complete.
 
-Dataset licensing follows the per-row `license` and `source_url` fields. The
-pretrained retrieval models used by Experiment 1 are disclosed with their model
-cards and Apache-2.0 license links in the research ledger.
+## References
 
-## Documentation
-
-- `docs/README.md` lists supplied and pending public documents.
-- `docs/research/retrieval-methods.md` records method provenance and evidence.
-- `scripts/` directory READMEs explain source, notebook, output, and submission
-  boundaries.
+- [BEIR](https://arxiv.org/abs/2104.08663)
+- [Dense Passage Retrieval (DPR)](https://arxiv.org/abs/2004.04906)
+- [Sentence-BERT](https://arxiv.org/abs/1908.10084)
+- [Light Hybrid Retrievers](https://arxiv.org/abs/2210.01371)
+- Burges, [From RankNet to LambdaRank to LambdaMART](https://www.microsoft.com/en-us/research/publication/from-ranknet-to-lambdarank-to-lambdamart-an-overview/)
+- [CrossEncoder model card](https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2)
+- [ColBERT](https://arxiv.org/abs/2004.12832)
+- [SPLADE](https://arxiv.org/abs/2107.05720)
