@@ -132,13 +132,13 @@ separate representation lane; and sparse RRF fuses the three weight-1 lanes.
 The reported decision is local validation evidence only, not a hidden-test or
 Kaggle claim.
 
-## Task 6 First Submission
+## Submission
 
-Status: first submission generated locally at `scripts/outputs/submission.csv`; it was
-not submitted to Kaggle, so no Kaggle score is available or claimed.
+Status: first submission generated locally at `scripts/submissions/submission*.csv`; one submitted before deadline and the rest after deadline on kaggle due to files corruption and technical issues.
 
 Submission method: `sparse_local` character TF-IDF fit on local `documents.csv`
-and applied to all 200 local test queries. Configuration is
+and applied to all 200 local test queries. 
+For sparse model, Configuration is
 `analyzer=char; ngram_range=(3, 5); title_weight=2; k=5`, with sublinear TF,
 cosine similarity, and deterministic document-ID tie breaking. Title text is
 duplicated twice before concatenation with document body. No dense model,
