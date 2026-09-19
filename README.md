@@ -94,7 +94,7 @@ Keep `.env` local and uncommitted. `AGRO_RAG_API_KEY=null` is valid only for a k
 - Aniekan Etim Udo — Team representative
 - Okolo Collins Lfesinachi
 - Oluwatosin Oluwatimilehin Olajide
-- [Aina Temiloluwa] (https://github.com/Temmy-bit)
+- [Aina Temiloluwa](https://github.com/Temmy-bit)
 - Mentors: Oluwaseun Ajayi, Samuel Taiwo, Adnan Adetunji
 
 Experiment 02 is not complete.
