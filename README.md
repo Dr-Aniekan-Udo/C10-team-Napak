@@ -1,6 +1,6 @@
-# C10-team-Napak — Agricultural Extension Retrieval/RAG Benchmark
+# Tri-AI Cohort 10, Team Napak: Agricultural Extension Retrieval/RAG Benchmark
 
-C10 Team Napak benchmarks retrieval/RAG: ranking agricultural-extension documents before generation. Education/benchmarking; not agronomic advice.
+Team Napak benchmarks retrieval/RAG: ranking agricultural-extension documents before generation. Education/benchmarking; not agronomic advice.
 
 ## Dataset
 
@@ -89,15 +89,17 @@ Keep `.env` local and uncommitted. `AGRO_RAG_API_KEY=null` is valid only for a k
 
 ## Appendix
 
-**Team — C10 Team Napak**
-
-- Aniekan Etim Udo — Team representative
+**Team: Team Napak**
+> **Team Lead:**
+- [Aniekan Etim Udo](https://github.com/Dr-Aniekan-Udo)
+> **Team Members:**
 - Okolo Collins Lfesinachi
 - Oluwatosin Oluwatimilehin Olajide
 - [Aina Temiloluwa](https://github.com/Temmy-bit)
-- Mentors: Oluwaseun Ajayi, Samuel Taiwo, Adnan Adetunji
-
-Experiment 02 is not complete.
+> **Mentors:**
+- Oluwaseun Ajayi
+- Samuel Taiwo
+- Adnan Adetunji
 
 ## References
 
